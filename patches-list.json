@@ -1,7 +1,43 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "patches": [
+    {
+      "name": "Fix photo upload in cloned installs",
+      "description": "Derives JPTT's FileProvider authority from the running package instead of the hardcoded com.joshua.jptt.provider, so 上傳圖片 → 拍照 keeps working when the \"Clone app\" patch renames the package. Changes nothing on a normal install.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.joshua.jptt",
+          "name": "JPTT",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FCFCFC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Increase image cache size",
       "description": "Raises Fresco's image disk cache from its 40 MB default, so images you already looked at are not evicted and re-downloaded when you scroll back.",
