@@ -36,7 +36,7 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           chmod +x gradlew
-          ./gradlew buildAndroid -Pversion="$VERSION" --no-daemon --console=plain
+          ./gradlew buildAndroid generatePatchesList -Pversion="$VERSION" --no-daemon --console=plain
 
       # Morphe Manager reads these two files straight from the repo to show the
       # bundle and its patches before downloading anything.
@@ -44,8 +44,6 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          ./gradlew generatePatchesList -Pversion="$VERSION" --no-daemon --console=plain
-
           jq --arg version "$VERSION" '.version = $version' patches-list.json > patches-list.json.tmp
           mv patches-list.json.tmp patches-list.json
 

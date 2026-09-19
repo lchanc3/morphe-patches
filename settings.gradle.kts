@@ -25,12 +25,19 @@ pluginManagement {
                 // Any GitHub account works; the token only needs the `read:packages`
                 // scope. Looked up in ~/.gradle/gradle.properties, then the
                 // environment, then whatever `gh` is logged in as.
+                val missing = "No GitHub credentials for maven.pkg.github.com. " +
+                    "Either run `gh auth refresh -s read:packages`, or put gpr.user " +
+                    "and gpr.key in ~/.gradle/gradle.properties. Gradle only reports " +
+                    "this as an unhelpful IllegalArgumentException otherwise."
+
                 username = providers.gradleProperty("gpr.user").orNull
                     ?: System.getenv("GITHUB_ACTOR")
                     ?: gh(listOf("api", "user", "--jq", ".login"))
+                    ?: error(missing)
                 password = providers.gradleProperty("gpr.key").orNull
                     ?: System.getenv("GITHUB_TOKEN")
                     ?: gh(listOf("auth", "token"))
+                    ?: error(missing)
             }
         }
         maven { url = uri("https://jitpack.io") }
