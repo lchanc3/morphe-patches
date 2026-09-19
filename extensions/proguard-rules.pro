@@ -12,11 +12,9 @@
   *;
 }
 
-# Proguard can strip away kotlin intrinsics methods that are used by extension
-# Kotlin code. Unclear why.
--keep class kotlin.jvm.internal.Intrinsics {
-    public static *;
-}
+# No keep rule for kotlin.jvm.internal.Intrinsics on purpose: this extension is
+# plain Java, and keeping it would merge kotlin.* classes JPTT already has.
+# Add it back if any extension code is ever written in Kotlin.
 
 -dontwarn java.lang.reflect.AnnotatedType
 -dontwarn javax.lang.model.element.Modifier
