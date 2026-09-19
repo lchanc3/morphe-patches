@@ -32,10 +32,11 @@ import java.util.concurrent.TimeUnit;
  * Downloads every image of the article being read into Fresco's cache up front,
  * instead of waiting for each image to be scrolled into view.
  *
- * <p>Images are fetched strictly one at a time on a background thread. Fresco
- * holds a whole encoded image in memory while its request is in flight, so
- * submitting an article's worth at once puts tens of megabytes of image data in
- * flight and can exhaust the heap.
+ * <p>Fetching runs on background threads with a bounded number of images in
+ * flight. Fresco holds a whole encoded image in memory for the duration of its
+ * request, so submitting an article's worth at once puts tens of megabytes in
+ * flight and can exhaust the heap; a small pool keeps the peak flat while still
+ * downloading several images at a time.
  */
 @SuppressWarnings("unused")
 public final class PreloadArticleImagesPatch {
@@ -45,6 +46,12 @@ public final class PreloadArticleImagesPatch {
      * Overwritten by the patch with the value of its "preloadLimit" option.
      */
     private static int maxImagesPerArticle = 60;
+
+    /**
+     * How many images may be downloading at the same time.
+     * Overwritten by the patch with the value of its "concurrency" option.
+     */
+    private static int concurrency = 4;
 
     /** How many URLs to remember so the same image is not requested twice. */
     private static final int REQUEST_HISTORY_SIZE = 512;
@@ -59,17 +66,14 @@ public final class PreloadArticleImagesPatch {
 
     private static final ArrayDeque<String> queue = new ArrayDeque<>();
 
-    /** One thread, so exactly one image is ever in flight. */
-    private static final ExecutorService worker = Executors.newSingleThreadExecutor(
-            new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable runnable) {
-                    Thread thread = new Thread(runnable, "jptt-preload");
-                    thread.setPriority(Thread.MIN_PRIORITY);
-                    thread.setDaemon(true);
-                    return thread;
-                }
-            });
+    /** How many drainers are running, so at most [concurrency] are ever started. */
+    private static int activeDrainers = 0;
+
+    /**
+     * Created on first use, because the patch sets [concurrency] from
+     * JpttApplication.onCreate() and the pool is sized from it.
+     */
+    private static ExecutorService workerPool;
 
     /** The callback only releases the latch, so it can run on the calling thread. */
     private static final Executor inlineExecutor = new Executor() {
@@ -82,6 +86,41 @@ public final class PreloadArticleImagesPatch {
     /** Called from the patched JpttApplication.onCreate(). */
     public static void setMaxImagesPerArticle(int max) {
         maxImagesPerArticle = max;
+    }
+
+    /** Called from the patched JpttApplication.onCreate(). */
+    public static void setConcurrency(int max) {
+        concurrency = Math.max(1, max);
+    }
+
+    private static synchronized ExecutorService workerPool() {
+        if (workerPool == null) {
+            workerPool = Executors.newFixedThreadPool(concurrency, new ThreadFactory() {
+                @Override
+                public Thread newThread(Runnable runnable) {
+                    Thread thread = new Thread(runnable, "jptt-preload");
+                    thread.setPriority(Thread.MIN_PRIORITY);
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
+        }
+        return workerPool;
+    }
+
+    /** Starts drainers until [concurrency] of them are busy with the backlog. */
+    private static void startDrainers() {
+        int toStart;
+        synchronized (requestedUrls) {
+            toStart = Math.min(concurrency, queue.size()) - activeDrainers;
+            if (toStart <= 0) {
+                return;
+            }
+            activeDrainers += toStart;
+        }
+        for (int i = 0; i < toStart; i++) {
+            workerPool().execute(drainQueue);
+        }
     }
 
     /**
@@ -113,7 +152,7 @@ public final class PreloadArticleImagesPatch {
             }
 
             if (queued) {
-                worker.execute(drainQueue);
+                startDrainers();
             }
         } catch (Throwable ex) {
             Log.e(JpttContext.LOG_TAG, "Could not queue article images", ex);
@@ -139,9 +178,20 @@ public final class PreloadArticleImagesPatch {
         }
     }
 
-    private static String nextUrl() {
+    /**
+     * Takes the next URL, or retires this drainer when the backlog is empty.
+     * Both happen under the same lock, so a drainer can never retire while a
+     * [startDrainers] running in parallel still counts it as busy.
+     *
+     * @return null once there is nothing left, meaning the caller must stop.
+     */
+    private static String nextUrlOrRetire() {
         synchronized (requestedUrls) {
-            return queue.poll();
+            String url = queue.poll();
+            if (url == null) {
+                activeDrainers--;
+            }
+            return url;
         }
     }
 
@@ -154,22 +204,35 @@ public final class PreloadArticleImagesPatch {
     private static final Runnable drainQueue = new Runnable() {
         @Override
         public void run() {
-            String url;
-            while ((url = nextUrl()) != null) {
-                try {
-                    fetchAndWait(url);
-                } catch (Throwable ex) {
-                    // Including OutOfMemoryError: drop this image, keep the app alive.
-                    forgetUrl(url);
-                    Log.e(JpttContext.LOG_TAG, "Could not preload " + url, ex);
+            boolean retired = false;
+            try {
+                while (true) {
+                    String url = nextUrlOrRetire();
+                    if (url == null) {
+                        retired = true;
+                        return;
+                    }
+                    try {
+                        fetchAndWait(url);
+                    } catch (Throwable ex) {
+                        // Including OutOfMemoryError: drop this image, keep the app alive.
+                        forgetUrl(url);
+                        Log.e(JpttContext.LOG_TAG, "Could not preload " + url, ex);
+                    }
+                }
+            } finally {
+                if (!retired) {
+                    synchronized (requestedUrls) {
+                        activeDrainers--;
+                    }
                 }
             }
         }
     };
 
     /**
-     * Fetches one image and blocks the worker thread until it is done, so the
-     * next one only starts once this one's bytes have been released.
+     * Fetches one image and blocks this drainer until it is done, so each
+     * drainer only ever holds one image in memory.
      */
     private static void fetchAndWait(final String url) throws InterruptedException {
         ImagePipeline pipeline = Fresco.getImagePipeline();

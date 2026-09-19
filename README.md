@@ -6,7 +6,7 @@
 
 | Patch | 做什麼 | 可調選項 |
 | --- | --- | --- |
-| **Preload article images** | 進入文章後就把整篇正文的圖片一次抓下來，不再等你捲到才開始下載。 | `preloadLimit`：一篇文章最多預載幾張（預設 60） |
+| **Preload article images** | 進入文章後就把整篇正文的圖片抓下來，不再等你捲到才開始下載。 | `preloadLimit`：一篇最多預載幾張（預設 60）、`concurrency`：同時抓幾張（預設 4） |
 | **Increase image cache size** | 把 Fresco 圖片磁碟快取從預設的 40 MB 拉大，捲走再捲回來不用重抓。 | `cacheSizeMb`：預設 512 MB |
 | **More recent searches** | 搜尋對話框的「最近看板搜尋 / 最近搜尋」保留更多關鍵字。 | `boardKeywordCount`（預設 15，原本 5）、`allKeywordCount`（預設 30，原本 15） |
 | **Fix photo upload in cloned installs** | 讓 FileProvider authority 改成跟著實際 package 名走，配 Clone app 用。 | 無 |

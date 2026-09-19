@@ -33,6 +33,19 @@ val preloadArticleImagesPatch = bytecodePatch(
             "Images past this limit still load the normal way when scrolled to.",
     )
 
+    val concurrency by intSliderOption(
+        key = "concurrency",
+        min = 1,
+        max = 8,
+        default = 4,
+        step = 1,
+        title = "Images downloading at once",
+        description = "How many images are preloaded in parallel. Fresco keeps a whole " +
+            "encoded image in memory for as long as its request is in flight, so raising " +
+            "this raises the peak memory use. Lower it if the app is killed on image heavy " +
+            "articles.",
+    )
+
     execute {
         // Configure the extension. onCreate has six local registers, so v0 is free
         // here and is overwritten by the original code right after.
@@ -41,6 +54,8 @@ val preloadArticleImagesPatch = bytecodePatch(
             """
                 const/16 v0, $preloadLimit
                 invoke-static { v0 }, $EXTENSION_PRELOAD_CLASS->setMaxImagesPerArticle(I)V
+                const/16 v0, $concurrency
+                invoke-static { v0 }, $EXTENSION_PRELOAD_CLASS->setConcurrency(I)V
             """,
         )
 

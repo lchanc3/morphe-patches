@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2
+
+- **Preload article images**: download several images in parallel again, with a
+  bounded pool instead of the whole article at once. 1.2.1 over-corrected to one
+  at a time, which made preloading pointlessly slow. New `concurrency` option,
+  default 4.
+
 ## 1.2.1
 
 - **Preload article images**: fetch one image at a time on a background thread
