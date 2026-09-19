@@ -40,3 +40,11 @@ pluginManagement {
 plugins {
     id("app.morphe.patches") version "1.3.4"
 }
+
+settings {
+    extensions {
+        // Must be an absolute path, otherwise extensions in subfolders fail to
+        // find the config.
+        proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())
+    }
+}
