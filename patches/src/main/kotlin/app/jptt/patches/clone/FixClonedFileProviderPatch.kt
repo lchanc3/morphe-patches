@@ -1,0 +1,38 @@
+package app.jptt.patches.clone
+
+import app.jptt.patches.shared.Constants.COMPATIBILITY_JPTT
+import app.jptt.patches.shared.Constants.EXTENSION_FILE_PROVIDER_CLASS
+import app.jptt.patches.shared.extensionHookPatch
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+
+@Suppress("unused")
+val fixClonedFileProviderPatch = bytecodePatch(
+    name = "Fix photo upload in cloned installs",
+    description = "Derives JPTT's FileProvider authority from the running package instead of " +
+        "the hardcoded com.joshua.jptt.provider, so 上傳圖片 → 拍照 keeps working when the " +
+        "\"Clone app\" patch renames the package. Changes nothing on a normal install.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_JPTT)
+
+    dependsOn(extensionHookPatch)
+
+    execute {
+        val method = DispatchTakePictureIntentFingerprint.method
+        val authorityIndex = DispatchTakePictureIntentFingerprint.instructionMatches.first().index
+        val authorityRegister =
+            method.getInstruction<OneRegisterInstruction>(authorityIndex).registerA
+
+        // p0 is the Activity the intent is built for, which is a Context.
+        method.replaceInstructions(
+            authorityIndex,
+            """
+                invoke-static { p0 }, $EXTENSION_FILE_PROVIDER_CLASS->getFileProviderAuthority(Landroid/content/Context;)Ljava/lang/String;
+                move-result-object v$authorityRegister
+            """,
+        )
+    }
+}

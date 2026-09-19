@@ -9,6 +9,7 @@ internal object Constants {
     /** Extension classes merged into the app by [extensionHookPatch]. */
     const val EXTENSION_CONTEXT_CLASS = "Lapp/jptt/extension/JpttContext;"
     const val EXTENSION_PRELOAD_CLASS = "Lapp/jptt/extension/PreloadArticleImagesPatch;"
+    const val EXTENSION_FILE_PROVIDER_CLASS = "Lapp/jptt/extension/FileProviderAuthorityPatch;"
 
     const val ARTICLE_FRAGMENT_CLASS = "Lcom/joshua/jptt/ArticleFragment;"
     const val BOARD_FRAGMENT_CLASS = "Lcom/joshua/jptt/BoardFragment;"

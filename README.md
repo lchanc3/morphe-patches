@@ -9,6 +9,7 @@
 | **Preload article images** | 進入文章後就把整篇正文的圖片一次抓下來，不再等你捲到才開始下載。 | `preloadLimit`：一篇文章最多預載幾張（預設 60） |
 | **Increase image cache size** | 把 Fresco 圖片磁碟快取從預設的 40 MB 拉大，捲走再捲回來不用重抓。 | `cacheSizeMb`：預設 512 MB |
 | **More recent searches** | 搜尋對話框的「最近看板搜尋 / 最近搜尋」保留更多關鍵字。 | `boardKeywordCount`（預設 15，原本 5）、`allKeywordCount`（預設 30，原本 15） |
+| **Fix photo upload in cloned installs** | 讓 FileProvider authority 改成跟著實際 package 名走，配 Clone app 用。 | 無 |
 
 推文裡的圖片也一起被涵蓋：JPTT 對正文和推文的圖片用的是同一條 `PicItem` 路徑，
 `getAllPicUrl()` 兩者都會回傳。
@@ -77,6 +78,24 @@ Manager 只接受 GitHub URL / deep link 形式的 patch 來源，所以要先�
    <https://morphe.software/add-source?github=lchanc3/morphe-patches>
 
 4. Manager 裡選 JPTT 的 APK，勾這三個 patch，需要的話在 Expert mode 調選項。
+
+### 搭配 Clone app（跟原版並存）
+
+用 Morphe 的 **Clone app** patch 把 package 改成 `com.joshua.jptt.morphe` 時，記得把它的
+兩個選項都打開，否則裝不起來：
+
+- **Update providers** → 不開會撞 `INSTALL_FAILED_CONFLICTING_PROVIDER`，
+  因為 JPTT 的六個 provider authority（FileProvider、AdMob、Firebase、androidx-startup、
+  Facebook、pairip）都還叫 `com.joshua.jptt.*`。
+- **Update permissions** → JPTT 宣告了 `com.joshua.jptt.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`，
+  protectionLevel 是 `signature`；複製版簽章不同，同名會撞
+  `INSTALL_FAILED_DUPLICATE_PERMISSION`。改名是安全的 —— androidx 的 `ContextCompat`
+  是用 `getPackageName() + ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"` 在執行期組出來的。
+
+開了 Update providers 之後會有一個副作用：`ImageUploadUtil.dispatchTakePictureIntent()`
+把 authority 寫死成 `com.joshua.jptt.provider`，manifest 改名後這行就對不上，
+「上傳圖片 → 拍照」會噴 `Couldn't find meta-data for provider`。
+**Fix photo upload in cloned installs** 這個 patch 就是修這個，記得一起勾。
 
 ### 電腦（Morphe Desktop）
 
