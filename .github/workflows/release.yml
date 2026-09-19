@@ -50,7 +50,7 @@ jobs:
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/patches-${VERSION}.mpp"
           jq --arg version "$VERSION" \
              --arg url "$DOWNLOAD_URL" \
-             --arg created "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+             --arg created "$(date -u +%Y-%m-%dT%H:%M:%S)" \
              '.version = $version | .download_url = $url | .created_at = $created' \
              patches-bundle.json > patches-bundle.json.tmp
           mv patches-bundle.json.tmp patches-bundle.json
