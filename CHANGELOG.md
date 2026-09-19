@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1
+
+- **Preload article images**: fetch one image at a time on a background thread
+  instead of submitting the whole article at once, which crashed the app on
+  image heavy articles. Failures, including OutOfMemoryError, now drop that one
+  image instead of taking the app down.
+
 ## 1.2.0
 
 - Add **Disable Play license check**: PairIP's license check fails on any

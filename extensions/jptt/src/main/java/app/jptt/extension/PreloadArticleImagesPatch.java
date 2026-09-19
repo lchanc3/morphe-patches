@@ -17,19 +17,25 @@ import com.facebook.imagepipeline.common.Priority;
 import com.facebook.imagepipeline.core.ImagePipeline;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Downloads every image of the article being read into Fresco's cache up front,
  * instead of waiting for each image to be scrolled into view.
  *
- * <p>JPTT builds a {@code PicItem} for every image link in the article body and
- * only starts the download when the list row is bound. This class is called
- * whenever the article's item list changes, asks the fragment for the full list
- * of image URLs, and warms the cache with the ones it has not seen yet.
+ * <p>Images are fetched strictly one at a time on a background thread. Fresco
+ * holds a whole encoded image in memory while its request is in flight, so
+ * submitting an article's worth at once puts tens of megabytes of image data in
+ * flight and can exhaust the heap.
  */
 @SuppressWarnings("unused")
 public final class PreloadArticleImagesPatch {
@@ -43,24 +49,44 @@ public final class PreloadArticleImagesPatch {
     /** How many URLs to remember so the same image is not requested twice. */
     private static final int REQUEST_HISTORY_SIZE = 512;
 
+    /** Upper bound on the backlog, in case an article somehow keeps growing. */
+    private static final int MAX_QUEUE_SIZE = 512;
+
+    /** Give up on one image rather than wedging the queue behind it. */
+    private static final long FETCH_TIMEOUT_SECONDS = 90;
+
     private static final LinkedHashSet<String> requestedUrls = new LinkedHashSet<>();
 
-    /** Runs the completion callback inline; it does nothing but release the result. */
-    private static final Executor INLINE_EXECUTOR = new Executor() {
+    private static final ArrayDeque<String> queue = new ArrayDeque<>();
+
+    /** One thread, so exactly one image is ever in flight. */
+    private static final ExecutorService worker = Executors.newSingleThreadExecutor(
+            new ThreadFactory() {
+                @Override
+                public Thread newThread(Runnable runnable) {
+                    Thread thread = new Thread(runnable, "jptt-preload");
+                    thread.setPriority(Thread.MIN_PRIORITY);
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
+
+    /** The callback only releases the latch, so it can run on the calling thread. */
+    private static final Executor inlineExecutor = new Executor() {
         @Override
         public void execute(Runnable command) {
             command.run();
         }
     };
 
-    /** Called from the patched {@code JpttApplication.onCreate()}. */
+    /** Called from the patched JpttApplication.onCreate(). */
     public static void setMaxImagesPerArticle(int max) {
         maxImagesPerArticle = max;
     }
 
     /**
-     * Called from the patched {@code ArticleFragment} with the result of
-     * {@code getAllPicUrl()}.
+     * Called from the patched ArticleFragment with the result of getAllPicUrl().
+     * Returns immediately; the downloading happens on the worker thread.
      */
     public static void preload(ArrayList<String> urls) {
         try {
@@ -73,26 +99,29 @@ public final class PreloadArticleImagesPatch {
                 return;
             }
 
-            ImagePipeline pipeline = Fresco.getImagePipeline();
             int limit = Math.min(urls.size(), maxImagesPerArticle);
+            boolean queued = false;
 
             for (int i = 0; i < limit; i++) {
                 String url = urls.get(i);
                 if (url == null || url.isEmpty()) {
                     continue;
                 }
-                if (!rememberUrl(url)) {
-                    continue;
+                if (enqueue(url)) {
+                    queued = true;
                 }
-                fetch(pipeline, url);
+            }
+
+            if (queued) {
+                worker.execute(drainQueue);
             }
         } catch (Throwable ex) {
-            Log.e(JpttContext.LOG_TAG, "Could not preload article images", ex);
+            Log.e(JpttContext.LOG_TAG, "Could not queue article images", ex);
         }
     }
 
-    /** @return true if this URL has not been requested before. */
-    private static boolean rememberUrl(String url) {
+    /** @return true if this URL was added, false if it is known or the queue is full. */
+    private static boolean enqueue(String url) {
         synchronized (requestedUrls) {
             if (!requestedUrls.add(url)) {
                 return false;
@@ -102,7 +131,17 @@ public final class PreloadArticleImagesPatch {
                 oldest.next();
                 oldest.remove();
             }
+            if (queue.size() >= MAX_QUEUE_SIZE) {
+                return false;
+            }
+            queue.add(url);
             return true;
+        }
+    }
+
+    private static String nextUrl() {
+        synchronized (requestedUrls) {
+            return queue.poll();
         }
     }
 
@@ -112,34 +151,66 @@ public final class PreloadArticleImagesPatch {
         }
     }
 
-    private static void fetch(ImagePipeline pipeline, final String url) {
-        // Low priority, so a picture the user is actually looking at is still
-        // fetched first. The encoded image is what Fresco keeps on disk, so this
-        // is also what makes scrolling back to an image instant.
+    private static final Runnable drainQueue = new Runnable() {
+        @Override
+        public void run() {
+            String url;
+            while ((url = nextUrl()) != null) {
+                try {
+                    fetchAndWait(url);
+                } catch (Throwable ex) {
+                    // Including OutOfMemoryError: drop this image, keep the app alive.
+                    forgetUrl(url);
+                    Log.e(JpttContext.LOG_TAG, "Could not preload " + url, ex);
+                }
+            }
+        }
+    };
+
+    /**
+     * Fetches one image and blocks the worker thread until it is done, so the
+     * next one only starts once this one's bytes have been released.
+     */
+    private static void fetchAndWait(final String url) throws InterruptedException {
+        ImagePipeline pipeline = Fresco.getImagePipeline();
+
+        // Low priority, so an image the user is actually looking at is fetched
+        // first. The encoded image is what Fresco keeps on disk, so this is also
+        // what makes scrolling back to an image instant.
         DataSource dataSource = pipeline.fetchEncodedImage(
                 ImageRequestBuilder.newBuilderWithSource(Uri.parse(url))
                         .setRequestPriority(Priority.LOW)
                         .build(),
                 null);
 
+        final CountDownLatch done = new CountDownLatch(1);
+
         dataSource.subscribe(new BaseDataSubscriber() {
             @Override
             protected void onNewResultImpl(DataSource dataSource) {
-                // Nothing to do. Fresco has cached the image and closes the
-                // data source for us once it is finished.
+                if (dataSource.isFinished()) {
+                    done.countDown();
+                }
+                // Fresco has cached the image and closes the data source for us.
             }
 
             @Override
             protected void onFailureImpl(DataSource dataSource) {
                 // Allow a later attempt; the image may just have timed out.
                 forgetUrl(url);
+                done.countDown();
             }
-        }, INLINE_EXECUTOR);
+        }, inlineExecutor);
+
+        if (!done.await(FETCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+            dataSource.close();
+            forgetUrl(url);
+        }
     }
 
     /**
-     * Mirrors {@code SettingsActivity.getAutoLoadPictures()} so preloading obeys
-     * the app's own "自動載入圖片" and "只在 Wi-Fi 下載入" settings.
+     * Mirrors SettingsActivity.getAutoLoadPictures() so preloading obeys the
+     * app's own image loading settings.
      */
     private static boolean isImageDownloadAllowed(Context context) {
         SharedPreferences preferences = context.getSharedPreferences(
