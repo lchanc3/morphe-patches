@@ -2,8 +2,10 @@
 morphe-patcher = "1.13.0"
 #noinspection GradleDependency
 smali = "d92701d947"
+gson = "2.14.0"
 
 [libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 # The Gradle plugin adds the dependency during the build; declared here only so
 # dependency tooling can see it.
 #noinspection UnusedVersionCatalogEntry

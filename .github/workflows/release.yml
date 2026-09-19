@@ -38,10 +38,17 @@ jobs:
           chmod +x gradlew
           ./gradlew buildAndroid -Pversion="$VERSION" --no-daemon --console=plain
 
-      - name: Update patches-bundle.json
+      # Morphe Manager reads these two files straight from the repo to show the
+      # bundle and its patches before downloading anything.
+      - name: Update bundle metadata
         env:
           VERSION: ${{ inputs.version }}
         run: |
+          ./gradlew generatePatchesList -Pversion="$VERSION" --no-daemon --console=plain
+
+          jq --arg version "$VERSION" '.version = $version' patches-list.json > patches-list.json.tmp
+          mv patches-list.json.tmp patches-list.json
+
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/patches-${VERSION}.mpp"
           jq --arg version "$VERSION" \
              --arg url "$DOWNLOAD_URL" \
@@ -52,7 +59,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add patches-bundle.json
+          git add patches-bundle.json patches-list.json
           git commit -m "chore: release v${VERSION} [skip ci]"
           git push
 
