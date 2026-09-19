@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Add **Disable Play license check**: PairIP's license check fails on any
+  re-signed build and closes the app on launch.
+
 ## 1.1.0
 
 - Add **Fix photo upload in cloned installs**: derives JPTT's FileProvider

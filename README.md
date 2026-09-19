@@ -10,6 +10,7 @@
 | **Increase image cache size** | 把 Fresco 圖片磁碟快取從預設的 40 MB 拉大，捲走再捲回來不用重抓。 | `cacheSizeMb`：預設 512 MB |
 | **More recent searches** | 搜尋對話框的「最近看板搜尋 / 最近搜尋」保留更多關鍵字。 | `boardKeywordCount`（預設 15，原本 5）、`allKeywordCount`（預設 30，原本 15） |
 | **Fix photo upload in cloned installs** | 讓 FileProvider authority 改成跟著實際 package 名走，配 Clone app 用。 | 無 |
+| **Disable Play license check** | 停掉 PairIP 的授權檢查。**任何重簽的 build 都需要**，否則一開啟就跳「Something went wrong」然後自己關掉。 | 無 |
 
 推文裡的圖片也一起被涵蓋：JPTT 對正文和推文的圖片用的是同一條 `PicItem` 路徑，
 `getAllPicUrl()` 兩者都會回傳。
@@ -78,6 +79,12 @@ Manager 只接受 GitHub URL / deep link 形式的 patch 來源，所以要先�
    <https://morphe.software/add-source?github=lchanc3/morphe-patches>
 
 4. Manager 裡選 JPTT 的 APK，勾這三個 patch，需要的話在 Expert mode 調選項。
+
+> **一定要勾 Disable Play license check。** JPTT 用 Google 的 PairIP 保護，
+> `LicenseContentProvider.onCreate()` 會在 App 啟動時向 Play 驗證這份安裝是不是
+> Google 發出來的。重簽過的 build 一定驗不過，`LicenseActivity` 會跳
+> 「Something went wrong / Check that Google Play is enabled…」，只有 Close 可按，
+> 按下去就 `System.exit(0)`。這跟有沒有用 Clone app 無關，所有 patch 過的版本都會遇到。
 
 ### 搭配 Clone app（跟原版並存）
 
