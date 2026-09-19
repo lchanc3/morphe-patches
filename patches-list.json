@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "patches": [
     {
       "name": "Disable Play license check",
@@ -211,6 +211,15 @@
           "required": false,
           "type": "kotlin.Int",
           "default": 60,
+          "values": null
+        },
+        {
+          "key": "concurrency",
+          "title": "Images downloading at once",
+          "description": "How many images are preloaded in parallel. Fresco keeps a whole encoded image in memory for as long as its request is in flight, so raising this raises the peak memory use. Lower it if the app is killed on image heavy articles.",
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 4,
           "values": null
         }
       ]
