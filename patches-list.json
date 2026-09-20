@@ -259,6 +259,42 @@
           "values": null
         }
       ]
+    },
+    {
+      "name": "Wrap recent searches",
+      "description": "Lays the 最近看板搜尋 / 最近搜尋 keywords out over several lines in the article search dialog, instead of one line you have to scroll sideways through. A list longer than a quarter of the screen scrolls within its own strip.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.joshua.jptt",
+          "name": "JPTT",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FCFCFC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
     }
   ]
 }

@@ -13,3 +13,19 @@ internal object ShowSearchDialogFingerprint : Fingerprint(
     returnType = "V",
     parameters = emptyList(),
 )
+
+/**
+ * `BoardFragment.addSearchHistoryListToLayout()`, which inflates one rounded
+ * button per keyword into the container it is handed.
+ */
+internal object AddSearchHistoryListToLayoutFingerprint : Fingerprint(
+    definingClass = BOARD_FRAGMENT_CLASS,
+    name = "addSearchHistoryListToLayout",
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/view/ViewGroup;",
+        "Ljava/util/ArrayList;",
+        "Landroid/view/LayoutInflater;",
+        "Landroidx/appcompat/app/AlertDialog;",
+    ),
+)

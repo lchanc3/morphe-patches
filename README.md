@@ -9,6 +9,7 @@
 | **Preload article images** | 進入文章後就把整篇正文的圖片抓下來，不再等你捲到才開始下載。 | `preloadLimit`：一篇最多預載幾張（預設 60）、`concurrency`：同時抓幾張（預設 4） |
 | **Increase image cache size** | 把 Fresco 圖片磁碟快取從預設的 40 MB 拉大，捲走再捲回來不用重抓。 | `cacheSizeMb`：預設 512 MB |
 | **More recent searches** | 搜尋對話框的「最近看板搜尋 / 最近搜尋」保留更多關鍵字。 | `boardKeywordCount`（預設 15，原本 5）、`allKeywordCount`（預設 30，原本 15） |
+| **Wrap recent searches** | 搜尋對話框的最近搜尋關鍵字改成一行放不下就往下排，不用再左右捲。單一清單超過螢幕四分之一高就在自己的區塊裡上下捲。 | 無 |
 | **Fix article list loading** | 過濾掉 JPTT 終端機解析不了的 ANSI escape sequence。PTT 現在每次重畫都會送 `ESC[?2026h` / `ESC[?2026l`，沒有這個 patch 的話點任何看板都會卡在「載入中」然後變成「載入失敗」。 | 無 |
 | **Fix photo upload in cloned installs** | 讓 FileProvider authority 改成跟著實際 package 名走，配 Clone app 用。 | 無 |
 | **Disable Play license check** | 停掉 PairIP 的授權檢查。**任何重簽的 build 都需要**，否則一開啟就跳「Something went wrong」然後自己關掉。 | 無 |

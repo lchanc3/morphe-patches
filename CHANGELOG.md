@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.4
+
+- Add **Wrap recent searches**: the 最近看板搜尋 / 最近搜尋 keywords in the article
+  search dialog are laid out over as many lines as they need instead of one line
+  you scroll sideways through. `dialog_search.xml` puts each list in a
+  `HorizontalScrollView`, which is bearable for the five and fifteen keywords
+  JPTT shows and not for the counts **More recent searches** allows. A list
+  longer than a quarter of the screen scrolls within its own strip, so a long
+  history cannot push the dialog's buttons off the bottom.
+
 ## 1.2.3
 
 - Add **Fix article list loading**: PTT now brackets its screen repaints with the
