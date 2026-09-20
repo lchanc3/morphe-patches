@@ -263,6 +263,21 @@ public final class PreloadArticleImagesPatch {
                 forgetUrl(url);
                 done.countDown();
             }
+
+            @Override
+            public void onCancellation(DataSource dataSource) {
+                // Release the drainer now instead of after FETCH_TIMEOUT_SECONDS.
+                forgetUrl(url);
+                done.countDown();
+            }
+
+            @Override
+            public void onProgressUpdate(DataSource dataSource) {
+                // Must be declared here: BaseDataSubscriber in the APK has no
+                // implementation to inherit, so leaving this out means an
+                // AbstractMethodError on Fresco's network thread, which no
+                // catch in this class can see and which takes the app down.
+            }
         }, inlineExecutor);
 
         if (!done.await(FETCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {

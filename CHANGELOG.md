@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.3
+
+- **Preload article images**: implement `onProgressUpdate` on the Fresco
+  subscriber. `BaseDataSubscriber` in the APK has no implementation to inherit
+  — R8 dropped the empty override because the one subclass it kept declares its
+  own — so the first progress report from a download threw
+  `AbstractMethodError` on Fresco's network thread, where none of this
+  extension's `catch` blocks can see it, and the app died on opening any
+  article with images. Also handle `onCancellation`, so a cancelled fetch
+  releases its worker immediately instead of after the 90 s timeout.
+
 ## 1.2.2
 
 - **Preload article images**: download several images in parallel again, with a
