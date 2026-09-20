@@ -10,8 +10,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 @Suppress("unused")
 val increaseImageCacheSizePatch = bytecodePatch(
     name = "Increase image cache size",
-    description = "Raises Fresco's image disk cache from its 40 MB default, so images " +
-        "you already looked at are not evicted and re-downloaded when you scroll back.",
+    description = "Raises the image cache limit so images you have already seen are " +
+        "not downloaded again when you scroll back.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)

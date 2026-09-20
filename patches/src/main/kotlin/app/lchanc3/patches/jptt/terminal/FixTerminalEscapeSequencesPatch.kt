@@ -19,10 +19,8 @@ private const val READER_FIELD_NAME = "in"
 @Suppress("unused")
 val fixTerminalEscapeSequencesPatch = bytecodePatch(
     name = "Fix article list loading",
-    description = "Filters out the ANSI escape sequences JPTT's terminal emulator cannot " +
-        "parse, which PTT started sending around every screen repaint. Without this, " +
-        "opening any board corrupts the parsed screen and the article list never gets " +
-        "past 載入中 before giving up with 載入失敗.",
+    description = "Fixes boards not opening after a change on PTT's side, where the " +
+        "article list never gets past 載入中.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)

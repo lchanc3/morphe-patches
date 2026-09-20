@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.6
+
+- Every patch description is shorter and stops naming internals. **Fix photo
+  upload in cloned installs** is now **Fix photo upload in clones**, so check
+  that one is still selected when you repatch; the other six keep their names.
+- The per-app gotchas that no patch description covers moved into the app's own
+  section of the patches list in the README, written by hand in
+  `.github/notes/<app>.md` and pulled in when the list is generated.
+
 ## 1.2.5
 
 - The bundle is no longer JPTT only. It shows up in Morphe Manager as `lchanc3`

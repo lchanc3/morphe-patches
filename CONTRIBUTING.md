@@ -96,6 +96,11 @@ patch 清單、建立 release。CI 用 Actions 自動發的 `GITHUB_TOKEN`，不
 README 裡 `<!-- PATCHES_START -->` 到 `<!-- PATCHES_END -->` 之間的內容是
 `.github/scripts/generate_patches_readme.py` 從 `patches-list.json` 產生的，不要手改。
 
+每個 App 的 patch 表格下面那段「要注意的」是手寫的，放在
+`.github/notes/<App 名稱>.md`，檔名要跟 patch 的 `Compatibility.name` 一樣（例如
+`JPTT.md`）。沒有這個檔就不會有那一段。patch 自己說得清楚的事寫在 patch 的
+`description` 就好，那裡會自動進表格；notes 只放表格看不出來、又會害人卡住的事。
+
 ## JPTT 的 patch 是怎麼找出來的
 
 JPTT 沒有混淆，類別與方法名稱都是原樣，所以 fingerprint 直接用

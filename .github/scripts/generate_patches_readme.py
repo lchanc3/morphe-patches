@@ -12,6 +12,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 README = ROOT / "README.md"
 PATCHES_LIST = ROOT / "patches-list.json"
+NOTES = ROOT / ".github" / "notes"
 
 START = "<!-- PATCHES_START -->"
 END = "<!-- PATCHES_END -->"
@@ -69,6 +70,15 @@ def patches_table(patches):
     return "\n".join(rows) + "\n"
 
 
+def app_notes(name):
+    """Hand written gotchas for one app, from .github/notes/<app>.md."""
+    path = NOTES / f"{name}.md"
+    if not path.is_file():
+        return ""
+    # The table already ends a line, so this starts straight at the text.
+    return path.read_text(encoding="utf-8").strip() + "\n"
+
+
 def render(data):
     patches = [patch for patch in data["patches"] if patch.get("name")]
     apps = app_sections(patches)
@@ -89,6 +99,7 @@ def render(data):
             "",
             versions_table(section["package"]),
             patches_table(section["patches"]),
+            app_notes(name),
             "</details>",
             "",
         ]

@@ -16,8 +16,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val moreRecentSearchesPatch = bytecodePatch(
     name = "More recent searches",
-    description = "Shows more of your recently used search keywords in the article " +
-        "search dialog, instead of the five and fifteen the app hardcodes.",
+    description = "Shows more of your recent search keywords in the article search dialog.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)

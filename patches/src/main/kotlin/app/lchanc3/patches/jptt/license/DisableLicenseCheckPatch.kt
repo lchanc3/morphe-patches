@@ -7,9 +7,8 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val disableLicenseCheckPatch = bytecodePatch(
     name = "Disable Play license check",
-    description = "Stops PairIP's license check from running. It verifies with the Play Store " +
-        "that the install is the one Google shipped, which a re-signed build never is, so " +
-        "without this the app shows \"Something went wrong\" on launch and closes itself.",
+    description = "Disables the Play Store license check, which a patched app always fails " +
+        "and which closes the app on launch. Needed by every patched build.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)

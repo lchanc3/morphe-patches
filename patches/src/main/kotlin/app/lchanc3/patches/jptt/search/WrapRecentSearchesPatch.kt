@@ -9,9 +9,8 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val wrapRecentSearchesPatch = bytecodePatch(
     name = "Wrap recent searches",
-    description = "Lays the 最近看板搜尋 / 最近搜尋 keywords out over several lines in the " +
-        "article search dialog, instead of one line you have to scroll sideways through. " +
-        "A list longer than a quarter of the screen scrolls within its own strip.",
+    description = "Lays the recent search keywords out over several lines instead of " +
+        "one line you have to scroll sideways.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)

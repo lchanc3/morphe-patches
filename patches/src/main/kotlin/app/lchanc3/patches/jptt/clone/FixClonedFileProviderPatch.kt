@@ -10,10 +10,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 @Suppress("unused")
 val fixClonedFileProviderPatch = bytecodePatch(
-    name = "Fix photo upload in cloned installs",
-    description = "Derives JPTT's FileProvider authority from the running package instead of " +
-        "the hardcoded com.joshua.jptt.provider, so 上傳圖片 → 拍照 keeps working when the " +
-        "\"Clone app\" patch renames the package. Changes nothing on a normal install.",
+    name = "Fix photo upload in clones",
+    description = "Fixes taking a photo to upload when the Clone app patch has renamed " +
+        "the package. Changes nothing on a normal install.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)

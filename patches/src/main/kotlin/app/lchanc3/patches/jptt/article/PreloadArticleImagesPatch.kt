@@ -13,9 +13,8 @@ import app.morphe.patcher.patch.intSliderOption
 @Suppress("unused")
 val preloadArticleImagesPatch = bytecodePatch(
     name = "Preload article images",
-    description = "Downloads every image of the article you are reading up front, " +
-        "instead of starting each download only once you scroll it into view. " +
-        "Obeys the app's own 自動載入圖片 / 只在 Wi-Fi 下載入 settings.",
+    description = "Downloads an article's images as soon as you open it instead of " +
+        "when you scroll to each one. Respects the app's own image loading settings.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)
