@@ -73,12 +73,23 @@ gpr.user = 你的GitHub帳號
 gpr.key  = ghp_xxxxxxxxxxxxxxxxxxxx
 ```
 
-或者用環境變數 `GITHUB_ACTOR` / `GITHUB_TOKEN`（CI 走的就是這條）。
+或者用環境變數 `GITHUB_ACTOR` / `GITHUB_TOKEN`（CI 走的就是這條）。`gh` 已經登入的話
+一行搞定：
 
-> 光跑 `gh auth refresh -s read:packages` 是不夠的。`settings.gradle.kts` 的
-> `pluginManagement` 有 `gh auth token` 的 fallback，那只夠解析到 plugin 本身；
-> plugin 套用時又會自己加一次同一個 repo，而它只看 `gpr.user` / `gpr.key` 和
-> `GITHUB_ACTOR` / `GITHUB_TOKEN`，找不到就丟一個沒有訊息的
+```bash
+{ echo "gpr.user = $(gh api user --jq .login)"; echo "gpr.key  = $(gh auth token)"; } >> ~/.gradle/gradle.properties
+```
+
+> **只有這四個名字有用。** Morphe 的 settings plugin 套用時會自己再加一次同一個 repo，
+> 而它只讀 `providers.gradleProperty("gpr.user").orElse(System.getenv("GITHUB_ACTOR")).get()`，
+> 沒有別的 fallback。所以光跑 `gh auth refresh -s read:packages` 不夠 ——
+> 那只夠 `settings.gradle.kts` 自己解析到 plugin。
+>
+> 在 `settings.gradle.kts` 裡用 `System.setProperty("org.gradle.project.gpr.user", …)`
+> 補也來不及：Gradle 在跑 settings script 之前就把 settings scope 的 properties
+> 讀完快照了（`-Dorg.gradle.project.gpr.user=…` 從指令列傳則有效）。
+>
+> 所以那裡改成缺憑證就直接停下來講清楚，而不是讓 plugin 丟一個沒有訊息的
 > `IllegalArgumentException`。
 
 ### 建置
