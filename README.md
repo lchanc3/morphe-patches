@@ -9,7 +9,7 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.5](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.5)**&nbsp;&nbsp;•&nbsp;&nbsp;7 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
+> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;7 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
 
 <details open>
 <summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
