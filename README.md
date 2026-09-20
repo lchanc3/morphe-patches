@@ -35,19 +35,7 @@
 - 一組能讀 GitHub Packages 的憑證 —— Morphe 的 Gradle plugin 放在
   `maven.pkg.github.com`，需要 `read:packages` scope。
 
-### 設定 GitHub 憑證（擇一）
-
-`settings.gradle.kts` 會依序找：`~/.gradle/gradle.properties` → 環境變數 → `gh auth token`。
-
-**用 GitHub CLI（最省事）**
-
-```bash
-gh auth refresh -s read:packages
-```
-
-之後直接編譯即可，token 不會落地到專案裡。
-
-**或自己開一個 PAT**
+### 設定 GitHub 憑證
 
 到 <https://github.com/settings/tokens/new?scopes=read:packages&description=Morphe> 產生
 classic token，寫進 `~/.gradle/gradle.properties`：
@@ -56,6 +44,14 @@ classic token，寫進 `~/.gradle/gradle.properties`：
 gpr.user = 你的GitHub帳號
 gpr.key  = ghp_xxxxxxxxxxxxxxxxxxxx
 ```
+
+或者用環境變數 `GITHUB_ACTOR` / `GITHUB_TOKEN`（CI 走的就是這條）。
+
+> 光跑 `gh auth refresh -s read:packages` 是不夠的。`settings.gradle.kts` 的
+> `pluginManagement` 有 `gh auth token` 的 fallback，那只夠解析到 plugin 本身；
+> plugin 套用時又會自己加一次同一個 repo，而它只看 `gpr.user` / `gpr.key` 和
+> `GITHUB_ACTOR` / `GITHUB_TOKEN`，找不到就丟一個沒有訊息的
+> `IllegalArgumentException`。
 
 ### 建置
 
