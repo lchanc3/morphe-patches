@@ -37,6 +37,42 @@
       "options": []
     },
     {
+      "name": "Fix article list loading",
+      "description": "Filters out the ANSI escape sequences JPTT's terminal emulator cannot parse, which PTT started sending around every screen repaint. Without this, opening any board corrupts the parsed screen and the article list never gets past 載入中 before giving up with 載入失敗.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.joshua.jptt",
+          "name": "JPTT",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FCFCFC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Fix photo upload in cloned installs",
       "description": "Derives JPTT's FileProvider authority from the running package instead of the hardcoded com.joshua.jptt.provider, so 上傳圖片 → 拍照 keeps working when the \"Clone app\" patch renames the package. Changes nothing on a normal install.",
       "default": true,

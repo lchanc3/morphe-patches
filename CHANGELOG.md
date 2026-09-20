@@ -2,6 +2,14 @@
 
 ## 1.2.3
 
+- Add **Fix article list loading**: PTT now brackets its screen repaints with the
+  synchronized output sequences `ESC[?2026h` / `ESC[?2026l`. JPTT's terminal
+  emulator has no case for the `h` and `l` final bytes, so it keeps appending to
+  its 32 character escape buffer, swallowing the screen content that follows and
+  printing fragments of the sequence as visible text. Entering a board never got
+  past the wait for 請按任意鍵繼續 and the article list sat at 載入中 until it
+  gave up with 載入失敗. This filters the sequences the emulator cannot parse out
+  of the stream before they reach it.
 - **Preload article images**: implement `onProgressUpdate` on the Fresco
   subscriber. `BaseDataSubscriber` in the APK has no implementation to inherit
   — R8 dropped the empty override because the one subclass it kept declares its

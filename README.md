@@ -9,6 +9,7 @@
 | **Preload article images** | 進入文章後就把整篇正文的圖片抓下來，不再等你捲到才開始下載。 | `preloadLimit`：一篇最多預載幾張（預設 60）、`concurrency`：同時抓幾張（預設 4） |
 | **Increase image cache size** | 把 Fresco 圖片磁碟快取從預設的 40 MB 拉大，捲走再捲回來不用重抓。 | `cacheSizeMb`：預設 512 MB |
 | **More recent searches** | 搜尋對話框的「最近看板搜尋 / 最近搜尋」保留更多關鍵字。 | `boardKeywordCount`（預設 15，原本 5）、`allKeywordCount`（預設 30，原本 15） |
+| **Fix article list loading** | 過濾掉 JPTT 終端機解析不了的 ANSI escape sequence。PTT 現在每次重畫都會送 `ESC[?2026h` / `ESC[?2026l`，沒有這個 patch 的話點任何看板都會卡在「載入中」然後變成「載入失敗」。 | 無 |
 | **Fix photo upload in cloned installs** | 讓 FileProvider authority 改成跟著實際 package 名走，配 Clone app 用。 | 無 |
 | **Disable Play license check** | 停掉 PairIP 的授權檢查。**任何重簽的 build 都需要**，否則一開啟就跳「Something went wrong」然後自己關掉。 | 無 |
 
@@ -25,6 +26,32 @@
 - **會遵守 App 自己的設定**：讀 JPTT 的 `auto_load_pictures` 與
   `auto_load_pictures_only_on_wifi`，所以你原本設「只在 Wi-Fi 下載入圖片」時，
   行動網路下不會偷偷預載。
+
+### 為什麼文章列表會壞掉
+
+JPTT 是用 24x80 的終端機畫面去刮 PTT 的內容，欄位位置都寫死。
+`JSocketSimple.startConnection()` 解 CSI 序列的方式是 switch 它拿到的字元：
+`A B C D H J K m` 有處理並結束序列，**其他一律往一個 32 字元的 buffer 塞**，
+包含它沒寫 case 的結束字元。序列永遠不結束，就會一路吃掉後面的畫面內容，
+直到 buffer 滿了才放棄 —— 這時候畫面已經歪掉，escape 的碎片還被當成文字印出來。
+
+PTT 現在用 synchronized output（`ESC[?2026h` / `ESC[?2026l`）把每次重畫包起來，
+結束字元是 `h` 和 `l`。可以用 App 自己的隱藏功能看到後果：
+**關於JPTT → 長按 JPTT 圖示 → 終端機內容**，看板列表那一頁會長這樣：
+
+```
+    ★    9 1/01 mkflyk23     □ [公告] 關於徵求分流文章之爭議／黑名單專區
+[?2026h  32 3/10 mkflyk23     □ [公告] 免空帳號買賣置底文
+ 文章選讀  (y)回應(X)推文(^X)轉錄 (=[]<>)相關主題(/?a)找標題/作者 (b)進板畫面  [
+```
+
+`[?2026h` 正好蓋掉編號欄那 7 格。`getToBoard()` 按 `i` 之後在一個沒有 timeout 的
+迴圈裡等第 24 行出現「請按任意鍵繼續」，等不到就一直空轉。
+
+這個 patch 把 `JSocketSimple.in` 的每一個賦值都包一層 reader
+（WebSocket、一般 socket、SSH 三種連線各一處），在 escape 進到解析器之前就把
+它處理不了的序列濾掉。Synchronized output 只是告訴真的終端機什麼時候該呈現畫面，
+沒有東西要模擬，丟掉不會少任何內容。
 
 ## 編譯
 
@@ -74,7 +101,7 @@ Manager 只接受 GitHub URL / deep link 形式的 patch 來源，所以要先�
 
    <https://morphe.software/add-source?github=lchanc3/morphe-patches>
 
-4. Manager 裡選 JPTT 的 APK，勾這三個 patch，需要的話在 Expert mode 調選項。
+4. Manager 裡選 JPTT 的 APK，勾要用的 patch，需要的話在 Expert mode 調選項。
 
 > **一定要勾 Disable Play license check。** JPTT 用 Google 的 PairIP 保護，
 > `LicenseContentProvider.onCreate()` 會在 App 啟動時向 Play 驗證這份安裝是不是
@@ -117,5 +144,7 @@ JPTT 沒有混淆，類別與方法名稱都是原樣，所以 fingerprint 直�
 - `com.joshua.jptt.BoardFragment#showSearchDialog()` — 兩次
   `DBHelper.getBoardHistory(ctx, site, true, board, N)`，N 分別是 5 和 15
 - `com.facebook.cache.disk.DiskCacheConfig$Builder#<init>` — `mMaxCacheSize = 41943040L`
+- `com.joshua.jptt.JSocketSimple#in`、`startConnection()` 裡那個 Runnable 的 CSI 解析，
+  以及 `JSocket#getToBoard()`
 
 要自己重新分析的話，`.work/`（已 gitignore）裡有 jadx 反編譯結果與 apktool 的 smali。

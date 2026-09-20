@@ -10,10 +10,15 @@ internal object Constants {
     const val EXTENSION_CONTEXT_CLASS = "Lapp/jptt/extension/JpttContext;"
     const val EXTENSION_PRELOAD_CLASS = "Lapp/jptt/extension/PreloadArticleImagesPatch;"
     const val EXTENSION_FILE_PROVIDER_CLASS = "Lapp/jptt/extension/FileProviderAuthorityPatch;"
+    const val EXTENSION_TERMINAL_ESCAPE_CLASS = "Lapp/jptt/extension/TerminalEscapePatch;"
 
     const val ARTICLE_FRAGMENT_CLASS = "Lcom/joshua/jptt/ArticleFragment;"
     const val BOARD_FRAGMENT_CLASS = "Lcom/joshua/jptt/BoardFragment;"
     const val DB_HELPER_CLASS = "Lcom/joshua/jptt/DBHelper;"
+    const val JSOCKET_SIMPLE_CLASS = "Lcom/joshua/jptt/JSocketSimple;"
+
+    /** Type prefix shared by JSocket, JSocketSimple and their inner classes. */
+    const val JSOCKET_CLASS_PREFIX = "Lcom/joshua/jptt/JSocket"
 
     val COMPATIBILITY_JPTT = Compatibility(
         name = "JPTT",
