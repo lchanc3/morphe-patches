@@ -89,6 +89,37 @@ gpr.key  = ghp_xxxxxxxxxxxxxxxxxxxx
 
 產出在 `patches/build/libs/patches-*.mpp`。
 
+### 驗證
+
+`buildAndroid` 只證明 patch 編得過，不證明它對 JPTT 還有效 —— fingerprint 對不上的話
+build 照樣綠燈，你要到 Morphe Manager 套用時才會發現。
+
+```bash
+./gradlew verifyAgainstApk
+```
+
+這個 task 會像 Manager 一樣把編出來的 bundle 實際套到 APK 上，每個 patch 印 ok / FAILED，
+再把 patched dex 寫到 `patches/build/verify/` 讓你反組譯檢查注入的位置。不簽章也不安裝。
+
+APK 依序找：`-Papk=<path>` → 環境變數 `JPTT_APK` → 專案根目錄下任何一個 `.apk`。
+找不到就只有這個 task 失敗，不影響一般編譯。
+
+### 那份 APK
+
+`*.apk` 有 gitignore，repo 裡不會有。需要的時候從手機上撈回來就好 —— 手機上
+JPTT 3.8.4 的 `base.apk` 跟這些 patch 當初對著寫的那份**位元組完全相同**
+（`sha256 7b65298d00d8219d49b8d4dfac739f2bf63b6187a00f7697e3c67861fcf2d605`）：
+
+```bash
+adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.8.4.apk
+```
+
+（JPTT 在 Play 上是 split APK，但 `base.apk` 以外那三個只有 arm64 native、xxhdpi
+資源和 zh 語系，patch 都不碰。）
+
+要注意的是這招只在手機還留著 3.8.4 的時候有效。JPTT 一更新那份就沒了，所以如果你想
+釘住這個版本，把檔案另外收在 repo 外面，再用 `JPTT_APK` 指過去。
+
 ## 套用
 
 ### 手機（Morphe Manager）
@@ -149,3 +180,4 @@ JPTT 沒有混淆，類別與方法名稱都是原樣，所以 fingerprint 直�
   以及 `JSocket#getToBoard()`
 
 要自己重新分析的話，`.work/`（已 gitignore）裡有 jadx 反編譯結果與 apktool 的 smali。
+那個目錄跟 APK 一樣是可拋棄的：APK 撈回來重跑一次 jadx / apktool 就有了。
