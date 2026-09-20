@@ -7,7 +7,7 @@ plugins {
 description = "Stubs for classes that already exist inside the JPTT APK."
 
 configure<LibraryExtension> {
-    namespace = "app.jptt.stub"
+    namespace = "app.lchanc3.stub.jptt"
     compileSdk = 36
 
     defaultConfig {

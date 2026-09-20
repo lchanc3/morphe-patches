@@ -8,7 +8,7 @@ dependencies {
 }
 
 configure<ApplicationExtension> {
-    namespace = "app.jptt.extension"
+    namespace = "app.lchanc3.extension.jptt"
     compileSdk = 36
 
     defaultConfig {

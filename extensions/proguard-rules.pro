@@ -8,7 +8,7 @@
 -dontoptimize
 -keepattributes *
 
--keep class app.jptt.** {
+-keep class app.lchanc3.** {
   *;
 }
 

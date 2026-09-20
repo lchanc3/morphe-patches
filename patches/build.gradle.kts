@@ -1,9 +1,9 @@
-group = "app.jptt"
+group = "app.lchanc3"
 
 patches {
     about {
-        name = "JPTT Patches"
-        description = "Personal quality-of-life patches for JPTT"
+        name = "lchanc3"
+        description = "Personal quality-of-life patches"
         source = "git@github.com:lchanc3/morphe-patches.git"
         author = "lchanc3"
         contact = "na"

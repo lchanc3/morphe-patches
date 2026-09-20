@@ -40,12 +40,15 @@ jobs:
 
       # Morphe Manager reads these two files straight from the repo to show the
       # bundle and its patches before downloading anything.
-      - name: Update bundle metadata
+      - name: Update bundle metadata and README
         env:
           VERSION: ${{ inputs.version }}
         run: |
           jq --arg version "$VERSION" '.version = $version' patches-list.json > patches-list.json.tmp
           mv patches-list.json.tmp patches-list.json
+
+          # The patches list in README.md is generated from patches-list.json.
+          python3 .github/scripts/generate_patches_readme.py
 
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/patches-${VERSION}.mpp"
           jq --arg version "$VERSION" \
@@ -57,7 +60,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add patches-bundle.json patches-list.json
+          git add patches-bundle.json patches-list.json README.md
           git commit -m "chore: release v${VERSION} [skip ci]"
           git push
 

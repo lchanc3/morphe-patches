@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.5
+
+- The bundle is no longer JPTT only. It shows up in Morphe Manager as `lchanc3`
+  rather than `JPTT Patches`, and patches now live under
+  `app.lchanc3.patches.<app>` with their extensions under
+  `app.lchanc3.extension.<app>`, so a second app is a folder beside JPTT's
+  instead of a rename. No patch behaves differently.
+
 ## 1.2.4
 
 - Add **Wrap recent searches**: the 最近看板搜尋 / 最近搜尋 keywords in the article
