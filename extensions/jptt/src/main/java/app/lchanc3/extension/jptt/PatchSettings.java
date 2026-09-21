@@ -122,6 +122,31 @@ public final class PatchSettings {
         }
     }
 
+    /**
+     * Stores what was typed, or forgets the setting when the box was left empty,
+     * which is how a value goes back to the default the patch was built with.
+     * Kept here so that what is written is what {@link #value} would read back.
+     */
+    public static void store(Context context, String key, String text) {
+        Setting setting = setting(key);
+        if (context == null || setting == null) {
+            return;
+        }
+        String trimmed = text == null ? "" : text.trim();
+        android.content.SharedPreferences.Editor editor = SettingsBackup.preferences(context).edit();
+        if (trimmed.isEmpty()) {
+            editor.remove(key);
+        } else {
+            try {
+                editor.putString(key, String.valueOf(
+                        clamp(Integer.parseInt(trimmed), setting.min, setting.max)));
+            } catch (NumberFormatException ex) {
+                editor.remove(key);
+            }
+        }
+        editor.apply();
+    }
+
     // Called from the patched app, one per value that used to be a constant.
 
     public static long imageCacheBytes() {

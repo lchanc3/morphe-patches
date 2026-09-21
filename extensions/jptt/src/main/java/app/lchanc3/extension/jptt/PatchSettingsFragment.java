@@ -44,7 +44,7 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        Context context = getPreferenceManager().getContext();
+        Context context = getContext();
         PreferenceScreen screen = new PreferenceScreen(context, null);
 
         java.util.List<PatchSettings.Setting> options = PatchSettings.registered();
@@ -135,16 +135,11 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
         }
     }
 
-    /**
-     * A whole number, kept as text because that is what EditTextPreference
-     * stores, and shown with what the patch was built with so that emptying the
-     * box is a way back to it.
-     */
-    private static EditTextPreference number(Context context, PatchSettings.Setting setting) {
+    private EditTextPreference number(Context context, PatchSettings.Setting setting) {
         EditTextPreference preference = new EditTextPreference(context, null);
-        preference.setKey(setting.key);
         preference.setTitle(setting.title);
         preference.setIconSpaceReserved(false);
+        preference.setText(String.valueOf(PatchSettings.value(setting.key)));
         preference.setOnBindEditTextListener(editText ->
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER));
         preference.setSummaryProvider(anyPreference ->
@@ -152,6 +147,13 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
                         + "　（預設 " + setting.defaultValue
                         + "，可填 " + setting.min + "–" + setting.max + "）\n"
                         + setting.summary);
+        // Preference.setKey() is not in the app's copy of the library, so this
+        // stores the value itself. Without a key the preference persists nothing
+        // on its own, which is exactly what is wanted here.
+        preference.setOnPreferenceChangeListener((changed, newValue) -> {
+            PatchSettings.store(getContext(), setting.key, String.valueOf(newValue));
+            return true;
+        });
         return preference;
     }
 
