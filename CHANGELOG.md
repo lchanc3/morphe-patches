@@ -22,10 +22,13 @@
   broken preview or the host's own banner. It rewrites only the URL the preview and
   the full size viewer load; the article text keeps the link that was posted.
 - JPTT 3.8.5 is now a declared target, and **Disable Play license check** works on
-  it again: PairIP renamed the call that starts the check, so the fingerprint no
-  longer looks for a specific method, only that `LicenseContentProvider.onCreate()`
-  reaches `LicenseClient` at all. Without this the bundle does not apply to 3.8.5,
-  and a build missing that patch closes itself on launch.
+  it again. PairIP moved: 3.8.5 wraps the check in `LicenseClient.checkLicense()`
+  and calls it from `Application.attachBaseContext()` as well as from the content
+  provider, so stopping the provider is no longer enough -- the check still ran and
+  put its dialog up mid-session. The patch now stops
+  `LicenseClient.initializeLicenseCheck()`, where every route meets, and silences
+  what a failed check does besides: the dialog, the paywall, the shutdown and the
+  repeated re-check.
 - **Fix article list loading** stays on for 3.8.5. The app fixed one of the escape
   sequences PTT added, not the parser: a final byte it has no case for still eats
   the screen, and PTT's `ESC[6n` on 9/27 is one. The patch description and the

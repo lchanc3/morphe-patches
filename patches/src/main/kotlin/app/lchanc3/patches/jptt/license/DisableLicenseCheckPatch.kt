@@ -1,7 +1,9 @@
 package app.lchanc3.patches.jptt.license
 
 import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 
 @Suppress("unused")
@@ -14,18 +16,31 @@ val disableLicenseCheckPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JPTT)
 
     execute {
-        // A ContentProvider is created during application startup, so this runs
-        // before anything else. Returning true straight away reports the provider
-        // as created without starting the check, which also stops the repeated
-        // background checks and the System.exit() they can trigger.
-        //
-        // The method has two local registers, so v0 is free.
-        LicenseContentProviderOnCreateFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
+        // The check never starts, so nothing downstream of it runs: no Play
+        // binding, no repeated checks, no dialog, no System.exit(0).
+        silence(InitializeLicenseCheckFingerprint)
+            ?: throw PatchException(
+                "$LICENSE_CLIENT_CLASS->initializeLicenseCheck() is gone. PairIP has " +
+                    "changed how the license check starts and this patch needs updating.",
+            )
+
+        // What a failed check does, silenced as well. These are what the user
+        // actually sees, so if PairIP ever reaches them by a route this patch does
+        // not know about, the app keeps running rather than closing itself.
+        silence(StartErrorDialogActivityFingerprint)
+            ?: throw PatchException(
+                "$LICENSE_CLIENT_CLASS->startErrorDialogActivity() is gone, so the " +
+                    "\"Something went wrong\" dialog can no longer be stopped.",
+            )
+
+        // Best effort: nothing reaches these once the check does not start, and a
+        // future PairIP that drops one should not fail the whole patch.
+        silence(ScheduleAppShutdownFingerprint)
+        silence(ScheduleRepeatedLicenseCheckFingerprint)
+        silence(StartPaywallActivityFingerprint)
     }
 }
+
+/** Turns the method into a no-op, or returns null when it is not in this build. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.silence(fingerprint: Fingerprint): Unit? =
+    fingerprint.matchOrNull()?.method?.addInstruction(0, "return-void")

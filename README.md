@@ -35,10 +35,16 @@
 
 **要注意的：**
 
-- **Disable Play license check 一定要勾。** JPTT 用 Google 的 PairIP 保護，
-  `LicenseContentProvider.onCreate()` 會在啟動時向 Play 驗證這份安裝是不是 Google 發的。
-  重簽過的 build 一定驗不過，`LicenseActivity` 會跳「Something went wrong」，只有 Close
-  可按，按下去就 `System.exit(0)`。這跟有沒有用 Clone app 無關，所有 patch 過的版本都會遇到。
+- **Disable Play license check 一定要勾。** JPTT 用 Google 的 PairIP 保護，重簽過的 build
+  一定驗不過，會跳「Something went wrong / Check that Google Play is enabled」，只有 Close
+  可按，按下去就關掉 app。這跟有沒有用 Clone app 無關，所有 patch 過的版本都會遇到。
+  這個 patch 擋的是 `LicenseClient.initializeLicenseCheck()` —— 所有路線的交會點：3.8.4 是
+  `LicenseContentProvider.onCreate()` 直接叫它，3.8.5 多了一層 `checkLicense(Context)`，
+  而且從 **`com.pairip.application.Application.attachBaseContext()`**（比 app 自己的任何
+  程式碼都早）也叫一次。順便把失敗後會做的事也清掉（錯誤對話框、付費牆、關閉 app、
+  週期性重驗），所以就算哪天 PairIP 從別的路線觸發，最糟也只是什麼都沒發生。
+  **它不是只在啟動時驗一次**：`scheduleRepeatedLicenseCheck()` 會排程重驗，所以擋不乾淨的
+  症狀是「用到一半才跳」。
 
 - **搭配 Morphe 的 Clone app patch 時，它自己那兩個選項都要開**，否則裝不起來：
   *Update providers* 不開會撞 `INSTALL_FAILED_CONFLICTING_PROVIDER`（JPTT 有六個 provider
