@@ -177,7 +177,9 @@
       "description": "Raises the image cache limit so images you have already seen are not downloaded again when you scroll back.",
       "default": true,
       "category": null,
-      "dependencies": [],
+      "dependencies": [
+        "BytecodePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.joshua.jptt",
@@ -215,7 +217,7 @@
         {
           "key": "cacheSizeMb",
           "title": "Image cache size (MB)",
-          "description": "Maximum disk space the image cache may use.",
+          "description": "Starting value for the maximum disk space the image cache may use. Changeable in the app afterwards, under Settings > lchanc3.",
           "required": false,
           "type": "kotlin.Int",
           "default": 512,
@@ -228,7 +230,9 @@
       "description": "Shows more of your recent search keywords in the article search dialog.",
       "default": true,
       "category": null,
-      "dependencies": [],
+      "dependencies": [
+        "BytecodePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.joshua.jptt",
@@ -266,7 +270,7 @@
         {
           "key": "boardKeywordCount",
           "title": "最近看板搜尋 entries",
-          "description": "Recent keywords used on the board you are currently in. JPTT shows 5 of them.",
+          "description": "Starting value, changeable in the app afterwards. Recent keywords used on the board you are currently in. JPTT shows 5 of them.",
           "required": false,
           "type": "kotlin.Int",
           "default": 15,
@@ -275,13 +279,56 @@
         {
           "key": "allKeywordCount",
           "title": "最近搜尋 entries",
-          "description": "Recent keywords used on any board. JPTT shows 15 of them.",
+          "description": "Starting value, changeable in the app afterwards. Recent keywords used on any board. JPTT shows 15 of them.",
           "required": false,
           "type": "kotlin.Int",
           "default": 30,
           "values": null
         }
       ]
+    },
+    {
+      "name": "Patch settings",
+      "description": "Adds a tab to JPTT's own settings where the options these patches add can be changed without patching the app again, and where every setting can be exported to a file and read back.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.joshua.jptt",
+          "name": "JPTT",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FCFCFC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.8.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
     },
     {
       "name": "Preload article images",
@@ -328,7 +375,7 @@
         {
           "key": "preloadLimit",
           "title": "Images to preload per article",
-          "description": "How many of an article's images are downloaded ahead of time. Images past this limit still load the normal way when scrolled to.",
+          "description": "Starting value for how many of an article's images are downloaded ahead of time. Images past the limit still load the normal way when scrolled to. Changeable in the app afterwards.",
           "required": false,
           "type": "kotlin.Int",
           "default": 60,
@@ -337,7 +384,7 @@
         {
           "key": "concurrency",
           "title": "Images downloading at once",
-          "description": "How many images are preloaded in parallel. Fresco keeps a whole encoded image in memory for as long as its request is in flight, so raising this raises the peak memory use. Lower it if the app is killed on image heavy articles.",
+          "description": "Starting value for how many images are preloaded in parallel, changeable in the app afterwards. Fresco keeps a whole encoded image in memory for as long as its request is in flight, so raising this raises the peak memory use. Lower it if the app is killed on image heavy articles.",
           "required": false,
           "type": "kotlin.Int",
           "default": 4,

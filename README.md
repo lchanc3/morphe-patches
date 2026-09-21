@@ -9,10 +9,10 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;9 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
+> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;10 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
 
 <details open>
-<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 
 **Supported versions:**
 
@@ -27,6 +27,7 @@
 | **Fix photo upload in clones** | Fixes taking a photo to upload when the Clone app patch has renamed the package. Changes nothing on a normal install. |  |
 | **Increase image cache size** | Raises the image cache limit so images you have already seen are not downloaded again when you scroll back. | `cacheSizeMb` |
 | **More recent searches** | Shows more of your recent search keywords in the article search dialog. | `boardKeywordCount`<br>`allKeywordCount` |
+| **Patch settings** | Adds a tab to JPTT's own settings where the options these patches add can be changed without patching the app again, and where every setting can be exported to a file and read back. |  |
 | **Preload article images** | Downloads an article's images as soon as you open it instead of when you scroll to each one. Respects the app's own image loading settings. | `preloadLimit`<br>`concurrency` |
 | **Reconnect on return** | Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds and does not even run while the app is in the background. |  |
 | **Wrap recent searches** | Lays the recent search keywords out over several lines instead of one line you have to scroll sideways. |  |
@@ -81,6 +82,13 @@
   **解法是設定，不是 patch**：應用設定 → 該 app → 省電策略 → 無限制（電池最佳化一起關）。
   注意 clone 和官方版是兩個不同的 app，要各設各的。**Reconnect on return** 只是讓你切回來時
   立刻重連、不用等那個最長 8 秒的倒數，治不了根因。
+
+- **Patch settings 那個分頁在「設定」的最後一頁（叫 lchanc3）。** 上面的 patch 選項就是
+  Morphe Manager 打包時那幾個，差別是現在 Manager 那邊填的只是**預設值**，裝好之後在 app 裡
+  還能改，不用重打包；欄位留空就回到預設值。圖片快取上限改完要重開 app 才生效（Fresco 的
+  快取是啟動時設定的），其他即時生效。**匯出不含帳號密碼** —— 那些存在另一個檔案
+  （`com.joshua.jptt.logininfo`），這個 patch 不碰。匯入後同樣要重開 app，因為 JPTT 很多設定
+  是啟動時讀進靜態欄位的。
 
 - 修改過的 APK 會用新的簽章，**不能**直接蓋掉官方版本安裝。要嘛先移除原本的 JPTT
   （先記下帳號設定），要嘛用 Clone app 改 package name 另裝一份。

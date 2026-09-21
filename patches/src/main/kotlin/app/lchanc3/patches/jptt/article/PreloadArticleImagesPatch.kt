@@ -2,6 +2,7 @@ package app.lchanc3.patches.jptt.article
 
 import app.lchanc3.patches.jptt.shared.Constants.ARTICLE_FRAGMENT_CLASS
 import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT
+import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_PATCH_SETTINGS_CLASS
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_PRELOAD_CLASS
 import app.lchanc3.patches.jptt.shared.JpttApplicationOnCreateFingerprint
 import app.lchanc3.patches.jptt.shared.extensionHookPatch
@@ -28,8 +29,9 @@ val preloadArticleImagesPatch = bytecodePatch(
         default = 60,
         step = 5,
         title = "Images to preload per article",
-        description = "How many of an article's images are downloaded ahead of time. " +
-            "Images past this limit still load the normal way when scrolled to.",
+        description = "Starting value for how many of an article's images are " +
+            "downloaded ahead of time. Images past the limit still load the normal way " +
+            "when scrolled to. Changeable in the app afterwards.",
     )
 
     val concurrency by intSliderOption(
@@ -39,22 +41,24 @@ val preloadArticleImagesPatch = bytecodePatch(
         default = 4,
         step = 1,
         title = "Images downloading at once",
-        description = "How many images are preloaded in parallel. Fresco keeps a whole " +
+        description = "Starting value for how many images are preloaded in parallel, " +
+            "changeable in the app afterwards. Fresco keeps a whole " +
             "encoded image in memory for as long as its request is in flight, so raising " +
             "this raises the peak memory use. Lower it if the app is killed on image heavy " +
             "articles.",
     )
 
     execute {
-        // Configure the extension. onCreate has six local registers, so v0 is free
-        // here and is overwritten by the original code right after.
+        // Both options are now only defaults: they are handed to the settings
+        // page, which is what the extension reads the values from. onCreate has
+        // six local registers, so v0 and v1 are free here and are overwritten by
+        // the original code right after.
         JpttApplicationOnCreateFingerprint.method.addInstructions(
             0,
             """
                 const/16 v0, $preloadLimit
-                invoke-static { v0 }, $EXTENSION_PRELOAD_CLASS->setMaxImagesPerArticle(I)V
-                const/16 v0, $concurrency
-                invoke-static { v0 }, $EXTENSION_PRELOAD_CLASS->setConcurrency(I)V
+                const/16 v1, $concurrency
+                invoke-static { v0, v1 }, $EXTENSION_PATCH_SETTINGS_CLASS->registerPreload(II)V
             """,
         )
 

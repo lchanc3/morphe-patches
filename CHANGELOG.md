@@ -2,6 +2,13 @@
 
 ## 1.2.7
 
+- New patch **Patch settings**: a tab of its own in JPTT's settings. Every option
+  these patches used to bake in at build time -- image cache size, preload limit
+  and concurrency, both recent search counts -- is now editable there, with what
+  was chosen in Morphe Manager as its default. It also exports every setting the
+  app has to a JSON file and reads one back, which survives the reinstall a new
+  signature forces. Accounts and passwords are in a different preferences file and
+  are not touched.
 - New patch **Reconnect on return**: coming back to the app reconnects straight
   away. The countdown JPTT shows grows to eight seconds, and `onStop()` cancels it
   without clearing it, so returning could leave you watching a countdown that was

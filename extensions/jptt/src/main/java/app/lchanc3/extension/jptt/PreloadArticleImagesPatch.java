@@ -41,18 +41,6 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("unused")
 public final class PreloadArticleImagesPatch {
 
-    /**
-     * Cap on how many images of a single article are preloaded.
-     * Overwritten by the patch with the value of its "preloadLimit" option.
-     */
-    private static int maxImagesPerArticle = 60;
-
-    /**
-     * How many images may be downloading at the same time.
-     * Overwritten by the patch with the value of its "concurrency" option.
-     */
-    private static int concurrency = 4;
-
     /** How many URLs to remember so the same image is not requested twice. */
     private static final int REQUEST_HISTORY_SIZE = 512;
 
@@ -66,12 +54,12 @@ public final class PreloadArticleImagesPatch {
 
     private static final ArrayDeque<String> queue = new ArrayDeque<>();
 
-    /** How many drainers are running, so at most [concurrency] are ever started. */
+    /** How many drainers are running, so at most the configured number are started. */
     private static int activeDrainers = 0;
 
     /**
-     * Created on first use, because the patch sets [concurrency] from
-     * JpttApplication.onCreate() and the pool is sized from it.
+     * Created on first use and sized from the setting as it was then. Changing
+     * the setting therefore takes effect on the next start, not this one.
      */
     private static ExecutorService workerPool;
 
@@ -83,19 +71,9 @@ public final class PreloadArticleImagesPatch {
         }
     };
 
-    /** Called from the patched JpttApplication.onCreate(). */
-    public static void setMaxImagesPerArticle(int max) {
-        maxImagesPerArticle = max;
-    }
-
-    /** Called from the patched JpttApplication.onCreate(). */
-    public static void setConcurrency(int max) {
-        concurrency = Math.max(1, max);
-    }
-
     private static synchronized ExecutorService workerPool() {
         if (workerPool == null) {
-            workerPool = Executors.newFixedThreadPool(concurrency, new ThreadFactory() {
+            workerPool = Executors.newFixedThreadPool(PatchSettings.preloadConcurrency(), new ThreadFactory() {
                 @Override
                 public Thread newThread(Runnable runnable) {
                     Thread thread = new Thread(runnable, "jptt-preload");
@@ -108,11 +86,11 @@ public final class PreloadArticleImagesPatch {
         return workerPool;
     }
 
-    /** Starts drainers until [concurrency] of them are busy with the backlog. */
+    /** Starts drainers until the configured number are busy with the backlog. */
     private static void startDrainers() {
         int toStart;
         synchronized (requestedUrls) {
-            toStart = Math.min(concurrency, queue.size()) - activeDrainers;
+            toStart = Math.min(PatchSettings.preloadConcurrency(), queue.size()) - activeDrainers;
             if (toStart <= 0) {
                 return;
             }
@@ -129,6 +107,7 @@ public final class PreloadArticleImagesPatch {
      */
     public static void preload(ArrayList<String> urls) {
         try {
+            int maxImagesPerArticle = PatchSettings.preloadLimit();
             if (urls == null || urls.isEmpty() || maxImagesPerArticle <= 0) {
                 return;
             }

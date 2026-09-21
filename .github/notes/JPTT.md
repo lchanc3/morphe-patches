@@ -49,5 +49,12 @@
   注意 clone 和官方版是兩個不同的 app，要各設各的。**Reconnect on return** 只是讓你切回來時
   立刻重連、不用等那個最長 8 秒的倒數，治不了根因。
 
+- **Patch settings 那個分頁在「設定」的最後一頁（叫 lchanc3）。** 上面的 patch 選項就是
+  Morphe Manager 打包時那幾個，差別是現在 Manager 那邊填的只是**預設值**，裝好之後在 app 裡
+  還能改，不用重打包；欄位留空就回到預設值。圖片快取上限改完要重開 app 才生效（Fresco 的
+  快取是啟動時設定的），其他即時生效。**匯出不含帳號密碼** —— 那些存在另一個檔案
+  （`com.joshua.jptt.logininfo`），這個 patch 不碰。匯入後同樣要重開 app，因為 JPTT 很多設定
+  是啟動時讀進靜態欄位的。
+
 - 修改過的 APK 會用新的簽章，**不能**直接蓋掉官方版本安裝。要嘛先移除原本的 JPTT
   （先記下帳號設定），要嘛用 Clone app 改 package name 另裝一份。
