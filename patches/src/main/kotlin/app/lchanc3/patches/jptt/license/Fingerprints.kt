@@ -14,6 +14,9 @@ internal object LicenseContentProviderOnCreateFingerprint : Fingerprint(
     returnType = "Z",
     parameters = emptyList(),
     filters = listOf(
-        methodCall(smali = "Lcom/pairip/licensecheck/LicenseClient;->initializeLicenseCheck()V"),
+        // Only that the check is started from here, not how. PairIP renames this
+        // call between its own versions: 3.8.4 calls initializeLicenseCheck(),
+        // 3.8.5 calls checkLicense(Context).
+        methodCall(definingClass = "Lcom/pairip/licensecheck/LicenseClient;"),
     ),
 )

@@ -19,17 +19,26 @@ import java.io.InputStreamReader;
  * are wrong and fragments of the escape sequence have been printed as visible
  * text.
  *
- * <p>PTT now brackets its screen repaints with the synchronized output pair
- * {@code ESC[?2026h} / {@code ESC[?2026l}, whose final bytes are {@code h} and
- * {@code l}. So every repaint corrupts the screen, the column offsets JPTT reads
- * everything by no longer line up, and entering a board never gets past
- * {@code getToBoard()}'s wait for 請按任意鍵繼續 — the article list just says
- * 載入中 until it gives up.
+ * <p>PTT started bracketing its screen repaints with the synchronized output
+ * pair {@code ESC[?2026h} / {@code ESC[?2026l}, whose final bytes are {@code h}
+ * and {@code l}. So every repaint corrupted the screen, the column offsets JPTT
+ * reads everything by no longer lined up, and entering a board never got past
+ * {@code getToBoard()}'s wait for 請按任意鍵繼續 — the article list just said
+ * 載入中 until it gave up.
  *
- * <p>This wraps the reader the emulator reads from and removes exactly those
- * sequences. Synchronized output is a hint to a real terminal about when to
- * present a frame, so there is nothing to emulate and nothing is lost by
- * dropping it; the sequences JPTT does implement are passed through untouched.
+ * <p>3.8.5 fixed that one sequence: a {@code ?} sets a private-mode flag and an
+ * {@code h} or {@code l} then ends the sequence. It did not implement the rest
+ * of ECMA-48, which is what PTT asked third party clients for in PttCurrent, so
+ * a final byte outside {@code ABCDHJKm} still runs away with the screen. The
+ * Cursor Position Report {@code ESC[6n} that PTT's login program sends to detect
+ * the terminal's encoding is exactly that, and no {@code ?} precedes it.
+ *
+ * <p>This wraps the reader the emulator reads from and drops every sequence the
+ * emulator has no case for, which is PTT's own advice for a client that is not
+ * going to implement one: read the whole CSI sequence, then ignore it. Nothing
+ * is lost — synchronized output and mouse tracking are hints to a real terminal,
+ * and a report JPTT cannot answer is better unanswered than half read — and the
+ * sequences JPTT does implement are passed through untouched.
  */
 @SuppressWarnings("unused")
 public final class TerminalEscapePatch {

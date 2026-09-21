@@ -25,6 +25,13 @@
               "description": null
             },
             {
+              "version": "3.8.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": null,
               "versionCodes": null,
               "isExperimental": true,
@@ -38,7 +45,7 @@
     },
     {
       "name": "Fix article list loading",
-      "description": "Fixes boards not opening after a change on PTT's side, where the article list never gets past 載入中.",
+      "description": "Drops the ANSI escape sequences JPTT's terminal emulator cannot parse, which otherwise swallow the screen content that follows them. Fixes the article list being stuck at 載入中, and keeps the next sequence PTT adds from breaking the app again.",
       "default": true,
       "category": null,
       "dependencies": [
@@ -55,6 +62,13 @@
           "targets": [
             {
               "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.8.5",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -97,6 +111,13 @@
               "description": null
             },
             {
+              "version": "3.8.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": null,
               "versionCodes": null,
               "isExperimental": true,
@@ -125,6 +146,13 @@
           "targets": [
             {
               "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.8.5",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -169,6 +197,13 @@
           "targets": [
             {
               "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.8.5",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -230,6 +265,13 @@
               "description": null
             },
             {
+              "version": "3.8.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": null,
               "versionCodes": null,
               "isExperimental": true,
@@ -279,6 +321,13 @@
           "targets": [
             {
               "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.8.5",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

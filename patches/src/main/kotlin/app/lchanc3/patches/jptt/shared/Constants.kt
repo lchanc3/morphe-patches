@@ -12,8 +12,10 @@ internal object Constants {
     const val EXTENSION_FILE_PROVIDER_CLASS = "Lapp/lchanc3/extension/jptt/FileProviderAuthorityPatch;"
     const val EXTENSION_TERMINAL_ESCAPE_CLASS = "Lapp/lchanc3/extension/jptt/TerminalEscapePatch;"
     const val EXTENSION_SEARCH_HISTORY_CLASS = "Lapp/lchanc3/extension/jptt/SearchHistoryLayoutPatch;"
+    const val EXTENSION_IMAGE_LINK_CLASS = "Lapp/lchanc3/extension/jptt/ImageLinkPatch;"
 
     const val ARTICLE_FRAGMENT_CLASS = "Lcom/joshua/jptt/ArticleFragment;"
+    const val ARTICLE_URL_TASK_CLASS = "Lcom/joshua/jptt/ArticleUrlAsyncTask;"
     const val BOARD_FRAGMENT_CLASS = "Lcom/joshua/jptt/BoardFragment;"
     const val DB_HELPER_CLASS = "Lcom/joshua/jptt/DBHelper;"
     const val JSOCKET_SIMPLE_CLASS = "Lcom/joshua/jptt/JSocketSimple;"
@@ -27,10 +29,18 @@ internal object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFCFCFC,
         targets = listOf(
-            // The version these patches were written against.
+            // Versions the bundle has been run against with `verifyAgainstApk`.
+            // Morphe Manager builds its supported set from these version strings
+            // alone, so anything not listed lands in "incompatible" and has to be
+            // patched through the unsupported-version dialog. A new JPTT release
+            // belongs here once it has been verified.
             AppTarget(version = "3.8.4"),
-            // Later versions are worth trying: nothing in JPTT is obfuscated, so
-            // the fingerprints keep matching unless the code itself changes.
+            AppTarget(version = "3.8.5"),
+            // Says out loud that untested versions are worth trying, since nothing
+            // in JPTT is obfuscated and the fingerprints keep matching unless the
+            // code itself changes. Manager drops null versions when it collects
+            // both the supported and the experimental set, so this changes nothing
+            // there; it only shows up as the 🧪 column in the README.
             AppTarget(version = null, isExperimental = true),
         ),
     )

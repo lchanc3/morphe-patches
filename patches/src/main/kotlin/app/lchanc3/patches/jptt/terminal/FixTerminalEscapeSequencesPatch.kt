@@ -19,8 +19,10 @@ private const val READER_FIELD_NAME = "in"
 @Suppress("unused")
 val fixTerminalEscapeSequencesPatch = bytecodePatch(
     name = "Fix article list loading",
-    description = "Fixes boards not opening after a change on PTT's side, where the " +
-        "article list never gets past 載入中.",
+    description = "Drops the ANSI escape sequences JPTT's terminal emulator cannot " +
+        "parse, which otherwise swallow the screen content that follows them. Fixes " +
+        "the article list being stuck at 載入中, and keeps the next sequence PTT " +
+        "adds from breaking the app again.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JPTT)
@@ -70,8 +72,9 @@ val fixTerminalEscapeSequencesPatch = bytecodePatch(
             }
         }
 
-        // 3.8.4 has six: one per transport in JSocket and in JSocketSimple, plus
-        // the `in = null` in destroy(), which the extension passes straight back.
+        // 3.8.4 and 3.8.5 both have six: one per transport in JSocket and in
+        // JSocketSimple, plus the `in = null` in destroy(), which the extension
+        // passes straight back.
         if (wrapped == 0) {
             throw PatchException(
                 "Found no assignment to $JSOCKET_SIMPLE_CLASS->$READER_FIELD_NAME. " +
