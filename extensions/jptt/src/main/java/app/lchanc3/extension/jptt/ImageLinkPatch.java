@@ -32,7 +32,8 @@ import java.util.regex.Pattern;
  *       any id and any format.
  *   <li>{@code meee.com.tw/<id>} is a page whose {@code og:image} is meee's own
  *       banner, which is what the preview shows today. The picture itself is at
- *       {@code i.meee.com.tw/<id>.png}.
+ *       {@code i.meee.com.tw/<id>} under the extension it was stored with, which
+ *       is asked for one at a time because nothing on the page says which.
  * </ul>
  *
  * <p>Only the URL the preview and the full size viewer load is changed. The
@@ -148,11 +149,12 @@ public final class ImageLinkPatch {
             return null;
         }
 
-        // Unlike imgur, meee is served the file it stored: a wrong extension is a
-        // 404. Everything seen so far is a png, which is also what the site's own
-        // "直連網址" offers.
+        // Unlike imgur, meee serves the file it stored under the extension it had:
+        // ask for the wrong one and it is a 404, and the page carries no og:image
+        // or direct link to read the right one from. So the extensions it uses are
+        // tried in turn, once per id, and the answer is remembered.
         if (extension == null) {
-            return "https://i.meee.com.tw/" + id + ".png";
+            return meeeDirect(id);
         }
         if (host.equals("i.meee.com.tw")) {
             return null;
@@ -160,13 +162,62 @@ public final class ImageLinkPatch {
         return "https://i.meee.com.tw/" + id + "." + extension;
     }
 
+    /** Extensions meee has been seen to store, in the order they are tried. */
+    private static final String[] MEEE_EXTENSIONS = { ".png", ".jpg", ".gif", ".webp" };
+
+    /** The direct URL for a meee id, or null when none of the extensions answer. */
+    private static String meeeDirect(String id) {
+        String key = "meee:" + id;
+        synchronized (LOOKUPS) {
+            if (LOOKUPS.containsKey(key)) {
+                return LOOKUPS.get(key);
+            }
+        }
+
+        String found = null;
+        for (String extension : MEEE_EXTENSIONS) {
+            String candidate = "https://i.meee.com.tw/" + id + extension;
+            try {
+                if (isImage(candidate)) {
+                    found = candidate;
+                    break;
+                }
+            } catch (Throwable ex) {
+                // Offline: leave the link alone rather than remembering a failure.
+                android.util.Log.e(JpttContext.LOG_TAG, "Could not reach " + candidate, ex);
+                return null;
+            }
+        }
+
+        synchronized (LOOKUPS) {
+            LOOKUPS.put(key, found);
+        }
+        return found;
+    }
+
+    /** Whether the URL answers with an image, asking for as little of it as possible. */
+    private static boolean isImage(String url) throws Exception {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            connection.setRequestProperty("User-Agent", "Chrome");
+            connection.setRequestProperty("Range", "bytes=0-0");
+            connection.setConnectTimeout(TIMEOUT_MS);
+            connection.setReadTimeout(TIMEOUT_MS);
+            int status = connection.getResponseCode();
+            String type = connection.getContentType();
+            return status >= 200 && status < 300 && type != null && type.startsWith("image/");
+        } finally {
+            connection.disconnect();
+        }
+    }
+
     /** Attributes sit between the two the tag is recognised by, in either order. */
     private static final Pattern OG_IMAGE = Pattern.compile(
             "<meta[^>]+property=\"og:image\"[^>]+content=\"([^\"]+)\""
                     + "|<meta[^>]+content=\"([^\"]+)\"[^>]+property=\"og:image\"");
 
-    /** Album pages read so far, so reopening an article does not fetch again. */
-    private static final Map<String, String> ALBUM_CACHE = new LinkedHashMap<String, String>(16, 0.75f, true) {
+    /** Lookups made so far, so reopening an article does not repeat them. */
+    private static final Map<String, String> LOOKUPS = new LinkedHashMap<String, String>(16, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
             return size() > 64;
@@ -181,9 +232,9 @@ public final class ImageLinkPatch {
 
     /** The first picture of an album page, or null when it does not name one. */
     private static String albumPicture(String albumUrl) {
-        synchronized (ALBUM_CACHE) {
-            if (ALBUM_CACHE.containsKey(albumUrl)) {
-                return ALBUM_CACHE.get(albumUrl);
+        synchronized (LOOKUPS) {
+            if (LOOKUPS.containsKey(albumUrl)) {
+                return LOOKUPS.get(albumUrl);
             }
         }
 
@@ -196,8 +247,8 @@ public final class ImageLinkPatch {
             android.util.Log.e(JpttContext.LOG_TAG, "Could not read " + albumUrl, ex);
         }
 
-        synchronized (ALBUM_CACHE) {
-            ALBUM_CACHE.put(albumUrl, picture);
+        synchronized (LOOKUPS) {
+            LOOKUPS.put(albumUrl, picture);
         }
         return picture;
     }
