@@ -13,10 +13,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-/** SDK entry points whose only job is to start talking to an ad network. */
-private val AD_SDK_INITIALISERS = listOf(
-    "Lcom/google/android/gms/ads/MobileAds;" to "initialize",
-    "Lcom/aotter/net/trek/TrekAds;" to "initialize",
+/** The ad SDKs, which the app touches in JpttApplication.onCreate() and nowhere else. */
+private val AD_SDK_CLASSES = setOf(
+    "Lcom/google/android/gms/ads/MobileAds;",
+    "Lcom/aotter/net/trek/TrekAds;",
 )
 
 @Suppress("unused")
@@ -33,7 +33,7 @@ val removeAdsPatch = bytecodePatch(
         emptyBanner()
         silence(AddLocalAdFingerprint, AddTAMediaAdFingerprint)
         silence(ArticleNativeAdLoadFingerprint, DigestNativeAdLoadFingerprint)
-        dropSdkInitialisers()
+        dropAdSdkCalls()
     }
 }
 
@@ -79,29 +79,40 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.silence(vararg fingerp
 }
 
 /**
- * Neither SDK is asked for an ad any more, so neither needs starting. Only the
- * calls go: what was built to pass to them is left to be dead code, which is
- * cheaper than working out what else those registers were for.
+ * Neither SDK is asked for an ad any more, so neither is started. Every call into
+ * them goes, not just the one that starts them: `MobileAds.setAppMuted()` throws
+ * `IllegalStateException` when `initialize()` has not run, which takes the whole
+ * app down on launch, and it is called on the next line.
+ *
+ * Only the calls go. What was built to pass to them is left as dead code, which
+ * is cheaper than working out what else those registers were for.
  */
-private fun app.morphe.patcher.patch.BytecodePatchContext.dropSdkInitialisers() {
+private fun app.morphe.patcher.patch.BytecodePatchContext.dropAdSdkCalls() {
     val method = JpttApplicationOnCreateFingerprint.method
     val instructions = method.implementation?.instructions
         ?: throw PatchException("JpttApplication.onCreate() has no body.")
 
-    val indices = instructions.withIndex().filter { (_, instruction) ->
+    val calls = instructions.withIndex().mapNotNull { (index, instruction) ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-        reference != null && AD_SDK_INITIALISERS.any { (definingClass, name) ->
-            reference.definingClass == definingClass && reference.name == name
-        }
-    }.map { it.index }
+        if (reference != null && reference.definingClass in AD_SDK_CLASSES) index to reference else null
+    }
 
-    if (indices.isEmpty()) {
+    if (calls.isEmpty()) {
         throw PatchException(
-            "JpttApplication.onCreate() starts neither ad SDK any more: " +
-                AD_SDK_INITIALISERS.joinToString { "${it.first}->${it.second}" },
+            "JpttApplication.onCreate() calls neither ad SDK any more: " +
+                AD_SDK_CLASSES.joinToString(),
+        )
+    }
+
+    // Removing a call whose result is used would leave the register it filled
+    // undefined, so say so rather than writing dex that will not verify.
+    calls.firstOrNull { (_, reference) -> reference.returnType != "V" }?.let { (_, reference) ->
+        throw PatchException(
+            "${reference.definingClass}->${reference.name}() returns " +
+                "${reference.returnType} rather than void, so its call cannot simply be dropped.",
         )
     }
 
     // Descending, so an earlier index is still correct after a removal.
-    indices.sortedDescending().forEach { index -> method.removeInstruction(index) }
+    calls.map { it.first }.sortedDescending().forEach { index -> method.removeInstruction(index) }
 }
