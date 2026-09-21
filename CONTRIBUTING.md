@@ -103,6 +103,26 @@ patch 清單、建立 release。CI 用 Actions 自動發的 `GITHUB_TOKEN`，不
 README 裡 `<!-- PATCHES_START -->` 到 `<!-- PATCHES_END -->` 之間的內容是
 `.github/scripts/generate_patches_readme.py` 從 `patches-list.json` 產生的，不要手改。
 
+## 🧱 注入 smali 時不要假設有暫存器可借
+
+R8 會把短方法編到只剩參數暫存器。這種方法裡 `.locals 0`，而 **`v0` 就是 `p0`** —— 在
+index 0 插一行 `iget-object v0, p0, ...` 等於把 `this` 蓋掉，patch 照樣套用成功、
+`verifyAgainstApk` 也全綠，然後在那個 class 第一次被載入時被 runtime verifier 擋下來：
+
+```
+java.lang.VerifyError: Verifier rejected class ...:
+  [0x4] 'this' argument 'Reference: X' not instance of 'Reference: Y'
+```
+
+同一個方法在 3.8.4 有 local、在 3.8.5 沒有，所以「上一版能動」不算證據。兩種安全寫法：
+
+- **重用現有指令的暫存器**（例如把某個 `const` 或 `iput` 的來源暫存器拿來放回傳值）。
+- **把邏輯放進自己新增的方法**，用 `ImmutableMethod(...)` 指定 `registerCount`，呼叫點
+  只留一行 `invoke-direct { p0 }`。`Reconnect on return` 和 `Preload article images`
+  都是這樣做的。
+
+真的要借 `v0`，先呼叫 `requireFreeLocals(method, n)`，讓它在編譯期就失敗而不是在使用者手機上。
+
 每個 App 的 patch 表格下面那段「要注意的」是手寫的，放在
 `.github/notes/<App 名稱>.md`，檔名要跟 patch 的 `Compatibility.name` 一樣（例如
 `JPTT.md`）。沒有這個檔就不會有那一段。patch 自己說得清楚的事寫在 patch 的

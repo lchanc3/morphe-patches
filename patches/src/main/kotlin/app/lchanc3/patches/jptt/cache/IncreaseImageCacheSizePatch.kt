@@ -3,6 +3,7 @@ package app.lchanc3.patches.jptt.cache
 import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_PATCH_SETTINGS_CLASS
 import app.lchanc3.patches.jptt.shared.JpttApplicationOnCreateFingerprint
+import app.lchanc3.patches.jptt.shared.requireFreeLocals
 import app.lchanc3.patches.jptt.shared.extensionHookPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
@@ -36,6 +37,7 @@ val increaseImageCacheSizePatch = bytecodePatch(
     execute {
         // The option is now only the default: it is handed to the settings page,
         // which is what the value is actually read from.
+        requireFreeLocals(JpttApplicationOnCreateFingerprint.method, 1)
         JpttApplicationOnCreateFingerprint.method.addInstructions(
             0,
             """

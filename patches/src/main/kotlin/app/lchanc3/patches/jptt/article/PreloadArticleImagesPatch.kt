@@ -5,11 +5,21 @@ import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_PATCH_SETTINGS_CLASS
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_PRELOAD_CLASS
 import app.lchanc3.patches.jptt.shared.JpttApplicationOnCreateFingerprint
+import app.lchanc3.patches.jptt.shared.requireFreeLocals
 import app.lchanc3.patches.jptt.shared.extensionHookPatch
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.smali.toInstructions
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import app.morphe.patcher.patch.intSliderOption
+
+/** The helper added to ArticleFragment, named so it cannot collide with its own. */
+private const val HELPER_METHOD = "preloadArticleImages"
 
 @Suppress("unused")
 val preloadArticleImagesPatch = bytecodePatch(
@@ -53,6 +63,7 @@ val preloadArticleImagesPatch = bytecodePatch(
         // page, which is what the extension reads the values from. onCreate has
         // six local registers, so v0 and v1 are free here and are overwritten by
         // the original code right after.
+        requireFreeLocals(JpttApplicationOnCreateFingerprint.method, 2)
         JpttApplicationOnCreateFingerprint.method.addInstructions(
             0,
             """
@@ -69,23 +80,49 @@ val preloadArticleImagesPatch = bytecodePatch(
         // getAllPicUrl() dereferences `adapter`, and notifyDataSetChanged() is
         // reached with a null adapter (it null checks it), so check it here too.
         //
-        // Both methods have at least one local register, so v0 is free at index 0
-        // and the original code overwrites it right after.
+        // This goes in a method of its own rather than inline, because neither
+        // caller is guaranteed a spare register: 3.8.5 compiles
+        // notifyDataSetChanged() with none at all, reusing the parameter register
+        // for the field it reads, and writing to v0 there overwrites `this`.
+        val classDef = ArticleFragmentNotifyDataSetChangedFingerprint.classDef
+        if (classDef.methods.any { it.name == HELPER_METHOD }) {
+            throw PatchException("$ARTICLE_FRAGMENT_CLASS already has a $HELPER_METHOD method.")
+        }
+
+        classDef.methods.add(
+            ImmutableMethod(
+                ARTICLE_FRAGMENT_CLASS,
+                HELPER_METHOD,
+                emptyList(),
+                "V",
+                AccessFlags.PRIVATE.value or AccessFlags.FINAL.value,
+                emptySet(),
+                null,
+                ImmutableMethodImplementation(
+                    // v0 for the adapter and the URLs, and p0 for the fragment.
+                    2,
+                    """
+                        iget-object v0, p0, $ARTICLE_FRAGMENT_CLASS->adapter:Lcom/joshua/jptt/ArticleFragment${'$'}IntextAdapter;
+                        if-eqz v0, :no_adapter
+                        invoke-virtual { p0 }, $ARTICLE_FRAGMENT_CLASS->getAllPicUrl()Ljava/util/ArrayList;
+                        move-result-object v0
+                        invoke-static { v0 }, $EXTENSION_PRELOAD_CLASS->preload(Ljava/util/ArrayList;)V
+                        :no_adapter
+                        return-void
+                    """.toInstructions(),
+                    null,
+                    null,
+                ),
+            ).toMutable(),
+        )
+
         listOf(
             ArticleFragmentNotifyDataSetChangedFingerprint,
             ArticleFragmentShowListPartialFingerprint,
         ).forEach { fingerprint ->
-            fingerprint.method.addInstructionsWithLabels(
+            fingerprint.method.addInstruction(
                 0,
-                """
-                    iget-object v0, p0, $ARTICLE_FRAGMENT_CLASS->adapter:Lcom/joshua/jptt/ArticleFragment${'$'}IntextAdapter;
-                    if-eqz v0, :no_adapter
-                    invoke-virtual { p0 }, $ARTICLE_FRAGMENT_CLASS->getAllPicUrl()Ljava/util/ArrayList;
-                    move-result-object v0
-                    invoke-static { v0 }, $EXTENSION_PRELOAD_CLASS->preload(Ljava/util/ArrayList;)V
-                    :no_adapter
-                    nop
-                """,
+                "invoke-direct { p0 }, $ARTICLE_FRAGMENT_CLASS->$HELPER_METHOD()V",
             )
         }
     }

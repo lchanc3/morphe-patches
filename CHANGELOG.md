@@ -2,6 +2,11 @@
 
 ## 1.2.7
 
+- **Preload article images** no longer takes the article view down on 3.8.5. It
+  wrote to v0 at the top of two methods, and R8 compiles one of them with no local
+  registers at all there, so v0 was the parameter holding `this`. The work moved
+  into a method of its own, and the patches that still borrow a register now check
+  there is one first.
 - New patch **Remove ads**: no ad is requested anywhere, rather than requested and
   hidden. It covers the shared banner factory, the ad rows inside articles and the
   digest lists, the app's own fallback ad and the TAMedia banner it reaches for

@@ -4,6 +4,7 @@ import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT
 import app.lchanc3.patches.jptt.shared.Constants.DB_HELPER_CLASS
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_PATCH_SETTINGS_CLASS
 import app.lchanc3.patches.jptt.shared.JpttApplicationOnCreateFingerprint
+import app.lchanc3.patches.jptt.shared.requireFreeLocals
 import app.lchanc3.patches.jptt.shared.extensionHookPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -63,6 +64,7 @@ val moreRecentSearchesPatch = bytecodePatch(
 
         // The options are now only defaults; the counts themselves come from the
         // settings page, read each time the dialog is opened.
+        requireFreeLocals(JpttApplicationOnCreateFingerprint.method, 2)
         JpttApplicationOnCreateFingerprint.method.addInstructions(
             0,
             """
