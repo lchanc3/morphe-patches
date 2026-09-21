@@ -2,6 +2,10 @@
 
 ## 1.2.7
 
+- New patch **Remove ads**: no ad is requested anywhere, rather than requested and
+  hidden. It covers the shared banner factory, the ad rows inside articles and the
+  digest lists, the app's own fallback ad and the TAMedia banner it reaches for
+  when it thinks AdMob is blocked, and the two ad SDKs it starts at launch.
 - New patch **Patch settings**: a tab of its own in JPTT's settings. Every option
   these patches used to bake in at build time -- image cache size, preload limit
   and concurrency, both recent search counts -- is now editable there, with what

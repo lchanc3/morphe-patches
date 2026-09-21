@@ -9,10 +9,10 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;10 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
+> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;11 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
 
 <details open>
-<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 
 **Supported versions:**
 
@@ -30,6 +30,7 @@
 | **Patch settings** | Adds a tab to JPTT's own settings where the options these patches add can be changed without patching the app again, and where every setting can be exported to a file and read back. |  |
 | **Preload article images** | Downloads an article's images as soon as you open it instead of when you scroll to each one. Respects the app's own image loading settings. | `preloadLimit`<br>`concurrency` |
 | **Reconnect on return** | Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds and does not even run while the app is in the background. |  |
+| **Remove ads** | Stops the banner, the rows inside articles and lists, and the ad the app falls back to when it thinks AdMob is blocked. No ad is requested at all, so nothing is downloaded and nothing is reported. |  |
 | **Wrap recent searches** | Lays the recent search keywords out over several lines instead of one line you have to scroll sideways. |  |
 
 **要注意的：**
@@ -89,6 +90,14 @@
   快取是啟動時設定的），其他即時生效。**匯出不含帳號密碼** —— 那些存在另一個檔案
   （`com.joshua.jptt.logininfo`），這個 patch 不碰。匯入後同樣要重開 app，因為 JPTT 很多設定
   是啟動時讀進靜態欄位的。
+
+- **Remove ads 擋的是四個地方**，而且是**不發出請求**而不是把結果藏起來：`Util` 裡那個所有
+  橫幅共用的工廠（照樣建出 AdView 但不 `loadAd`，並設成 GONE，所以版面不會留洞）、文章與精華
+  列表裡的原生廣告列（`NativeAdItem.loadAd()` 直接 return，那個列自己就會縮成 0 高度）、
+  JPTT 在「偵測到 AdMob 被擋」時改用的自家廣告與 TAMedia 橫幅、以及 `JpttApplication` 啟動時
+  的 AdMob 與 Aotter Trek 兩個 SDK 初始化。
+  順帶一提，JPTT 判斷「AdMob 被擋」的方法是**開機時讀 `/etc/hosts` 找 `admob` 和 `vpon` 字串**，
+  所以走 DNS 過濾（Pi-hole、私人 DNS）不會被它偵測到 —— 你只會看到空白版位，它不會改走自家廣告。
 
 - 修改過的 APK 會用新的簽章，**不能**直接蓋掉官方版本安裝。要嘛先移除原本的 JPTT
   （先記下帳號設定），要嘛用 Clone app 改 package name 另裝一份。

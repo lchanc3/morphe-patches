@@ -434,6 +434,47 @@
       "options": []
     },
     {
+      "name": "Remove ads",
+      "description": "Stops the banner, the rows inside articles and lists, and the ad the app falls back to when it thinks AdMob is blocked. No ad is requested at all, so nothing is downloaded and nothing is reported.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.joshua.jptt",
+          "name": "JPTT",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FCFCFC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.8.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Wrap recent searches",
       "description": "Lays the recent search keywords out over several lines instead of one line you have to scroll sideways.",
       "default": true,

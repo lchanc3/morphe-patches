@@ -22,6 +22,7 @@ internal object Constants {
     const val DB_HELPER_CLASS = "Lcom/joshua/jptt/DBHelper;"
     const val MAIN_ACTIVITY_CLASS = "Lcom/joshua/jptt/MainActivity;"
     const val SETTINGS_PAGER_ADAPTER_CLASS = "Lcom/joshua/jptt/SettingsPagerAdapter;"
+    const val UTIL_CLASS = "Lcom/joshua/jptt/Util;"
     const val JSOCKET_SIMPLE_CLASS = "Lcom/joshua/jptt/JSocketSimple;"
 
     /** Type prefix shared by JSocket, JSocketSimple and their inner classes. */

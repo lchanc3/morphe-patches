@@ -56,5 +56,13 @@
   （`com.joshua.jptt.logininfo`），這個 patch 不碰。匯入後同樣要重開 app，因為 JPTT 很多設定
   是啟動時讀進靜態欄位的。
 
+- **Remove ads 擋的是四個地方**，而且是**不發出請求**而不是把結果藏起來：`Util` 裡那個所有
+  橫幅共用的工廠（照樣建出 AdView 但不 `loadAd`，並設成 GONE，所以版面不會留洞）、文章與精華
+  列表裡的原生廣告列（`NativeAdItem.loadAd()` 直接 return，那個列自己就會縮成 0 高度）、
+  JPTT 在「偵測到 AdMob 被擋」時改用的自家廣告與 TAMedia 橫幅、以及 `JpttApplication` 啟動時
+  的 AdMob 與 Aotter Trek 兩個 SDK 初始化。
+  順帶一提，JPTT 判斷「AdMob 被擋」的方法是**開機時讀 `/etc/hosts` 找 `admob` 和 `vpon` 字串**，
+  所以走 DNS 過濾（Pi-hole、私人 DNS）不會被它偵測到 —— 你只會看到空白版位，它不會改走自家廣告。
+
 - 修改過的 APK 會用新的簽章，**不能**直接蓋掉官方版本安裝。要嘛先移除原本的 JPTT
   （先記下帳號設定），要嘛用 Clone app 改 package name 另裝一份。
