@@ -2,6 +2,10 @@
 
 ## 1.2.7
 
+- New patch **Reconnect on return**: coming back to the app reconnects straight
+  away. The countdown JPTT shows grows to eight seconds, and `onStop()` cancels it
+  without clearing it, so returning could leave you watching a countdown that was
+  not running. This runs what tapping the disconnected banner already ran.
 - New patch **Fix image links**: an imgur album or `.mp4`, an imgur address without
   the `i.` subdomain and a `meee.com.tw` page now show the picture instead of a
   broken preview or the host's own banner. It rewrites only the URL the preview and

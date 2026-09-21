@@ -346,6 +346,47 @@
       ]
     },
     {
+      "name": "Reconnect on return",
+      "description": "Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds and does not even run while the app is in the background.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.joshua.jptt",
+          "name": "JPTT",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FCFCFC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.8.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.8.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Wrap recent searches",
       "description": "Lays the recent search keywords out over several lines instead of one line you have to scroll sideways.",
       "default": true,

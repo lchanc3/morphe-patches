@@ -38,5 +38,16 @@
   查不到 `og:image`（例如 id 根本不是相簿）就原樣不動。meee 只認對的副檔名，目前看到的
   都是 `.png`，跟網站自己給的「直連網址」一致。
 
+- **切到別的 app 就斷線，不是 patch 壞了，也不是 PTT 或網路的問題，是手機的省電策略。**
+  實測（Xiaomi HyperOS，螢幕全程亮著、Wi-Fi）：app 離開前景約 5～8 秒後，Android 把它的 uid
+  踢出背景連網允許名單（netpolicy 的 `10516-background-default`），netd 接著直接砍掉既有
+  socket —— 規則變更到 `WebSocket failed` + `SocketException: Software caused connection abort`
+  中間只隔 **7 毫秒**。把同一個 app 加進 doze 白名單再測一次，同樣的操作連線兩分鐘都不掉。
+  對照組另外驗過：PTT 的 ws 伺服器閒置七分鐘不踢人（而且它自己不送 ping，只回 pong），
+  同一台路由器底下的閒置連線七分鐘也不會被 NAT 收掉。
+  **解法是設定，不是 patch**：應用設定 → 該 app → 省電策略 → 無限制（電池最佳化一起關）。
+  注意 clone 和官方版是兩個不同的 app，要各設各的。**Reconnect on return** 只是讓你切回來時
+  立刻重連、不用等那個最長 8 秒的倒數，治不了根因。
+
 - 修改過的 APK 會用新的簽章，**不能**直接蓋掉官方版本安裝。要嘛先移除原本的 JPTT
   （先記下帳號設定），要嘛用 Clone app 改 package name 另裝一份。

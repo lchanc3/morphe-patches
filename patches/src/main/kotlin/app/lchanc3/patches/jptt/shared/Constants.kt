@@ -18,6 +18,7 @@ internal object Constants {
     const val ARTICLE_URL_TASK_CLASS = "Lcom/joshua/jptt/ArticleUrlAsyncTask;"
     const val BOARD_FRAGMENT_CLASS = "Lcom/joshua/jptt/BoardFragment;"
     const val DB_HELPER_CLASS = "Lcom/joshua/jptt/DBHelper;"
+    const val MAIN_ACTIVITY_CLASS = "Lcom/joshua/jptt/MainActivity;"
     const val JSOCKET_SIMPLE_CLASS = "Lcom/joshua/jptt/JSocketSimple;"
 
     /** Type prefix shared by JSocket, JSocketSimple and their inner classes. */

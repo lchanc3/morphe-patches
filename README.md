@@ -9,10 +9,10 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;8 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
+> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;9 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
 
 <details open>
-<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 
 **Supported versions:**
 
@@ -28,6 +28,7 @@
 | **Increase image cache size** | Raises the image cache limit so images you have already seen are not downloaded again when you scroll back. | `cacheSizeMb` |
 | **More recent searches** | Shows more of your recent search keywords in the article search dialog. | `boardKeywordCount`<br>`allKeywordCount` |
 | **Preload article images** | Downloads an article's images as soon as you open it instead of when you scroll to each one. Respects the app's own image loading settings. | `preloadLimit`<br>`concurrency` |
+| **Reconnect on return** | Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds and does not even run while the app is in the background. |  |
 | **Wrap recent searches** | Lays the recent search keywords out over several lines instead of one line you have to scroll sideways. |  |
 
 **要注意的：**
@@ -69,6 +70,17 @@
   `og:image` 再拿直連網址，每個連結只查一次並記起來；**多張圖的相簿只會出第一張**，
   查不到 `og:image`（例如 id 根本不是相簿）就原樣不動。meee 只認對的副檔名，目前看到的
   都是 `.png`，跟網站自己給的「直連網址」一致。
+
+- **切到別的 app 就斷線，不是 patch 壞了，也不是 PTT 或網路的問題，是手機的省電策略。**
+  實測（Xiaomi HyperOS，螢幕全程亮著、Wi-Fi）：app 離開前景約 5～8 秒後，Android 把它的 uid
+  踢出背景連網允許名單（netpolicy 的 `10516-background-default`），netd 接著直接砍掉既有
+  socket —— 規則變更到 `WebSocket failed` + `SocketException: Software caused connection abort`
+  中間只隔 **7 毫秒**。把同一個 app 加進 doze 白名單再測一次，同樣的操作連線兩分鐘都不掉。
+  對照組另外驗過：PTT 的 ws 伺服器閒置七分鐘不踢人（而且它自己不送 ping，只回 pong），
+  同一台路由器底下的閒置連線七分鐘也不會被 NAT 收掉。
+  **解法是設定，不是 patch**：應用設定 → 該 app → 省電策略 → 無限制（電池最佳化一起關）。
+  注意 clone 和官方版是兩個不同的 app，要各設各的。**Reconnect on return** 只是讓你切回來時
+  立刻重連、不用等那個最長 8 秒的倒數，治不了根因。
 
 - 修改過的 APK 會用新的簽章，**不能**直接蓋掉官方版本安裝。要嘛先移除原本的 JPTT
   （先記下帳號設定），要嘛用 Clone app 改 package name 另裝一份。
