@@ -11,7 +11,11 @@
   hidden. It covers the shared banner factory, the ad rows inside articles and the
   digest lists, the app's own fallback ad and the TAMedia banner it reaches for
   when it thinks AdMob is blocked, and the two ad SDKs it starts at launch.
-- New patch **Patch settings**: a tab of its own in JPTT's settings. Every option
+- New patch **Patch settings**: a tab of its own in JPTT's settings. It is built
+  out of what R8 left of the app's own copy of androidx.preference, which is less
+  than the library has: the screen is attached to the hierarchy by hand, and each
+  number opens a dialog of its own rather than an EditTextPreference, which is
+  reopened by a key these preferences cannot be given. Every option
   these patches used to bake in at build time -- image cache size, preload limit
   and concurrency, both recent search counts -- is now editable there, with what
   was chosen in Morphe Manager as its default. It also exports every setting the

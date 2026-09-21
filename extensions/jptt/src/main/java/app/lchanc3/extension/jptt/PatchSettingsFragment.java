@@ -1,21 +1,25 @@
 package app.lchanc3.extension.jptt;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import android.text.InputType;
 
-import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -45,7 +49,18 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         Context context = getContext();
+        // What PreferenceManager.createPreferenceScreen() does, which is not in the
+        // app's copy of the library: build the screen and attach it to the
+        // hierarchy. Without the second half every addPreference() throws, because
+        // a preference asks the manager it has not got for an id.
         PreferenceScreen screen = new PreferenceScreen(context, null);
+        if (!attachToHierarchy(screen)) {
+            // Nothing can be added to a screen with no manager, so leave the page
+            // empty rather than take the app down with it.
+            setPreferenceScreen(screen);
+            toast("設定頁打不開：這個 JPTT 版本的 androidx.preference 跟預期不同");
+            return;
+        }
 
         java.util.List<PatchSettings.Setting> options = PatchSettings.registered();
         if (!options.isEmpty()) {
@@ -74,6 +89,32 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
                 }));
 
         setPreferenceScreen(screen);
+    }
+
+    /**
+     * Attaches a hand built screen to the fragment's preference hierarchy, which
+     * is what {@code PreferenceManager.createPreferenceScreen()} would have done.
+     *
+     * <p>That method is not in the app's copy of the library, {@code
+     * PreferenceScreen} is final so a subclass cannot reach the attach step, and
+     * the step itself is {@code protected} -- so it is called by reflection. The
+     * method is there in both 3.8.4 and 3.8.5; this returns false rather than
+     * throwing if some future build drops it too.
+     *
+     * <p>Without it the first {@code addPreference()} throws, because the
+     * preference being added asks the manager the group has not got for an id.
+     */
+    private boolean attachToHierarchy(PreferenceScreen screen) {
+        try {
+            Method attach = Preference.class.getDeclaredMethod(
+                    "onAttachedToHierarchy", PreferenceManager.class);
+            attach.setAccessible(true);
+            attach.invoke(screen, getPreferenceManager());
+            return true;
+        } catch (Throwable ex) {
+            Log.e(JpttContext.LOG_TAG, "Could not attach the settings screen", ex);
+            return false;
+        }
     }
 
     private void startExport() {
@@ -135,26 +176,65 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
         }
     }
 
-    private EditTextPreference number(Context context, PatchSettings.Setting setting) {
-        EditTextPreference preference = new EditTextPreference(context, null);
+    /**
+     * One numeric setting, as a plain preference that opens a dialog of its own.
+     *
+     * <p>Not an {@code EditTextPreference}: that one is opened by handing its key
+     * to {@code EditTextPreferenceDialogFragmentCompat}, which looks the
+     * preference back up by that key -- and these have no key, because
+     * {@code Preference.setKey()} is not in the app's copy of the library. The
+     * dialog is built here instead, from the platform's own, and the value is read
+     * and written through {@link PatchSettings}.
+     */
+    private Preference number(Context context, PatchSettings.Setting setting) {
+        Preference preference = new Preference(context, null);
         preference.setTitle(setting.title);
         preference.setIconSpaceReserved(false);
-        preference.setText(String.valueOf(PatchSettings.value(setting.key)));
-        preference.setOnBindEditTextListener(editText ->
-                editText.setInputType(InputType.TYPE_CLASS_NUMBER));
-        preference.setSummaryProvider(anyPreference ->
-                PatchSettings.value(setting.key)
-                        + "　（預設 " + setting.defaultValue
-                        + "，可填 " + setting.min + "–" + setting.max + "）\n"
-                        + setting.summary);
-        // Preference.setKey() is not in the app's copy of the library, so this
-        // stores the value itself. Without a key the preference persists nothing
-        // on its own, which is exactly what is wanted here.
-        preference.setOnPreferenceChangeListener((changed, newValue) -> {
-            PatchSettings.store(getContext(), setting.key, String.valueOf(newValue));
+        preference.setSummary(summaryOf(setting));
+        preference.setOnPreferenceClickListener(clicked -> {
+            askForNumber(setting, clicked);
             return true;
         });
         return preference;
+    }
+
+    private static String summaryOf(PatchSettings.Setting setting) {
+        return PatchSettings.value(setting.key)
+                + "　（預設 " + setting.defaultValue
+                + "，可填 " + setting.min + "–" + setting.max + "）\n"
+                + setting.summary;
+    }
+
+    private void askForNumber(PatchSettings.Setting setting, Preference preference) {
+        Context context = getContext();
+        if (context == null) {
+            return;
+        }
+
+        EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setText(String.valueOf(PatchSettings.value(setting.key)));
+        input.setSelection(input.getText().length());
+
+        int padding = (int) (24 * context.getResources().getDisplayMetrics().density);
+        FrameLayout frame = new FrameLayout(context);
+        frame.setPadding(padding, padding / 2, padding, 0);
+        frame.addView(input);
+
+        new AlertDialog.Builder(context)
+                .setTitle(setting.title)
+                .setMessage(setting.summary)
+                .setView(frame)
+                .setPositiveButton("確定", (dialog, which) -> {
+                    PatchSettings.store(context, setting.key, input.getText().toString());
+                    preference.setSummary(summaryOf(setting));
+                })
+                .setNeutralButton("恢復預設", (dialog, which) -> {
+                    PatchSettings.store(context, setting.key, "");
+                    preference.setSummary(summaryOf(setting));
+                })
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     private static PreferenceCategory category(Context context, String title) {
