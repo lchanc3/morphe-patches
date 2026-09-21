@@ -9,10 +9,10 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;7 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
+> **[v1.2.6](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.6)**&nbsp;&nbsp;•&nbsp;&nbsp;8 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
 
 <details open>
-<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 
 **Supported versions:**
 
@@ -23,6 +23,7 @@
 |---|---|---|
 | **Disable Play license check** | Disables the Play Store license check, which a patched app always fails and which closes the app on launch. Needed by every patched build. |  |
 | **Fix article list loading** | Drops the ANSI escape sequences JPTT's terminal emulator cannot parse, which otherwise swallow the screen content that follows them. Fixes the article list being stuck at 載入中, and keeps the next sequence PTT adds from breaking the app again. |  |
+| **Fix image links** | Shows the picture for links an image host answers with a web page: an imgur album or .mp4, an address missing the i. subdomain, a meee.com.tw page. Only the preview and the full size image change, not the article text. |  |
 | **Fix photo upload in clones** | Fixes taking a photo to upload when the Clone app patch has renamed the package. Changes nothing on a normal install. |  |
 | **Increase image cache size** | Raises the image cache limit so images you have already seen are not downloaded again when you scroll back. | `cacheSizeMb` |
 | **More recent searches** | Shows more of your recent search keywords in the article search dialog. | `boardKeywordCount`<br>`allKeywordCount` |
@@ -61,6 +62,13 @@
   `　信件列表　`。JPTT 的狀態機是 `lineNContains(23, 1, 9, "文章選讀")` 這樣寫死比對的，
   3.8.5 的 dex 裡還是只有舊字串。到時候進看板、收信、我的最愛都會卡住，要等官方更新，
   或是等這裡生一個改字串比對的 patch。
+
+- **Fix image links 只換預覽圖要抓的網址，內文的連結不動。** imgur 的 `.mp4` / `.gifv`
+  會換成同一個 id 的 `.jpg`，那是 imgur 自己產的靜止畫格 —— 是「看得到圖」，不是能播的影片，
+  要看動的還是點進去用瀏覽器。相簿（`imgur.com/a/...`、`/gallery/...`）會去讀那頁的
+  `og:image` 再拿直連網址，每個連結只查一次並記起來；**多張圖的相簿只會出第一張**，
+  查不到 `og:image`（例如 id 根本不是相簿）就原樣不動。meee 只認對的副檔名，目前看到的
+  都是 `.png`，跟網站自己給的「直連網址」一致。
 
 - 修改過的 APK 會用新的簽章，**不能**直接蓋掉官方版本安裝。要嘛先移除原本的 JPTT
   （先記下帳號設定），要嘛用 Clone app 改 package name 另裝一份。

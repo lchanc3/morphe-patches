@@ -2,6 +2,10 @@
 
 ## 1.2.7
 
+- New patch **Fix image links**: an imgur album or `.mp4`, an imgur address without
+  the `i.` subdomain and a `meee.com.tw` page now show the picture instead of a
+  broken preview or the host's own banner. It rewrites only the URL the preview and
+  the full size viewer load; the article text keeps the link that was posted.
 - JPTT 3.8.5 is now a declared target, and **Disable Play license check** works on
   it again: PairIP renamed the call that starts the check, so the fingerprint no
   longer looks for a specific method, only that `LicenseContentProvider.onCreate()`
