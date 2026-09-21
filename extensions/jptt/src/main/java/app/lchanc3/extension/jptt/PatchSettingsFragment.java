@@ -35,6 +35,9 @@ import java.util.Locale;
 @SuppressWarnings("unused")
 public final class PatchSettingsFragment extends PreferenceFragmentCompat {
 
+    /** Each number's preference, so an import can refresh what they show. */
+    private final java.util.Map<String, Preference> shown = new java.util.LinkedHashMap<>();
+
     private static final int REQUEST_EXPORT = 0x6C63;
     private static final int REQUEST_IMPORT = 0x6C64;
 
@@ -67,7 +70,9 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
             PreferenceCategory category = category(context, "Patch 選項");
             screen.addPreference(category);
             for (PatchSettings.Setting setting : options) {
-                category.addPreference(number(context, setting));
+                Preference preference = number(context, setting);
+                shown.put(setting.key, preference);
+                category.addPreference(preference);
             }
         }
 
@@ -159,6 +164,7 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
                 int written = SettingsBackup.importFrom(
                         context,
                         SettingsBackup.read(context.getContentResolver().openInputStream(uri)));
+                refreshShownValues();
                 toast("已匯入 " + written + " 項設定，請重新啟動 JPTT");
             }
         } catch (Throwable ex) {
@@ -166,6 +172,16 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
             String message = ex.getMessage();
             toast((requestCode == REQUEST_EXPORT ? "匯出失敗" : "匯入失敗")
                     + (message == null ? "" : "：" + message));
+        }
+    }
+
+    /** An import writes values behind the page's back, so redraw what it shows. */
+    private void refreshShownValues() {
+        for (java.util.Map.Entry<String, Preference> entry : shown.entrySet()) {
+            PatchSettings.Setting setting = PatchSettings.setting(entry.getKey());
+            if (setting != null) {
+                entry.getValue().setSummary(summaryOf(setting));
+            }
         }
     }
 
