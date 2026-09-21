@@ -55,6 +55,13 @@ build 照樣綠燈，你要到 Morphe Manager 套用時才會發現。
 
 這個 task 會像 Manager 一樣把編出來的 bundle 實際套到 APK 上，每個 patch 印 ok / FAILED，
 再把 patched dex 寫到 `patches/build/verify/` 讓你反組譯檢查注入的位置。不簽章也不安裝。
+`build/libs` 裡有多個 bundle 時取最新的那個，並印出忽略了哪些。
+
+套用成功之後它還會做一次**引用檢查**：把 extension 打進 app 的每個呼叫、以及 patch 注入的
+smali 指向 extension 的每個呼叫，都拿去對 patched dex 裡真正定義的方法比對。這是因為
+extension 是對著完整的函式庫編譯的，而 app 裡那份已經被 R8 剃過 —— 這種呼叫編得過、patch
+也套得上，要等執行到那一行才炸。`androidx.preference` 就少了 `setKey()`、
+`createPreferenceScreen()`、`PreferenceManager.getContext()` 等等。
 
 APK 依序找：`-Papk=<path>` → 環境變數 `JPTT_APK` → 專案根目錄下任何一個 `.apk`。
 找不到就只有這個 task 失敗，不影響一般編譯。
