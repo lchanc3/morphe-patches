@@ -34,10 +34,18 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
     private static final int REQUEST_EXPORT = 0x6C63;
     private static final int REQUEST_IMPORT = 0x6C64;
 
+    /*
+     * Every androidx.preference call here has to exist in JPTT's own copy of the
+     * library, which R8 has already shrunk to what the app itself uses. So the
+     * preferences are built with the two argument constructors the XML inflater
+     * needs -- the Context only ones are gone -- and createPreferenceScreen(),
+     * setDialogTitle() and setPersistent() are avoided for the same reason.
+     */
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         Context context = getPreferenceManager().getContext();
-        PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(context);
+        PreferenceScreen screen = new PreferenceScreen(context, null);
 
         java.util.List<PatchSettings.Setting> options = PatchSettings.registered();
         if (!options.isEmpty()) {
@@ -133,10 +141,9 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
      * box is a way back to it.
      */
     private static EditTextPreference number(Context context, PatchSettings.Setting setting) {
-        EditTextPreference preference = new EditTextPreference(context);
+        EditTextPreference preference = new EditTextPreference(context, null);
         preference.setKey(setting.key);
         preference.setTitle(setting.title);
-        preference.setDialogTitle(setting.title);
         preference.setIconSpaceReserved(false);
         preference.setOnBindEditTextListener(editText ->
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER));
@@ -149,7 +156,7 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
     }
 
     private static PreferenceCategory category(Context context, String title) {
-        PreferenceCategory category = new PreferenceCategory(context);
+        PreferenceCategory category = new PreferenceCategory(context, null);
         category.setTitle(title);
         category.setIconSpaceReserved(false);
         return category;
@@ -161,11 +168,10 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
             String summary,
             Preference.OnPreferenceClickListener onClick
     ) {
-        Preference preference = new Preference(context);
+        Preference preference = new Preference(context, null);
         preference.setTitle(title);
         preference.setSummary(summary);
         preference.setIconSpaceReserved(false);
-        preference.setPersistent(false);
         preference.setOnPreferenceClickListener(onClick);
         return preference;
     }
