@@ -11,8 +11,8 @@
    ```
 
 2. 選擇 JPTT，照預設勾選打包安裝。安裝前請先看 [JPTT 使用說明](docs/JPTT.md)。
-3. 之後的新版，Manager 會從這個來源抓。每一版改了什麼寫在
-   [Releases](https://github.com/lchanc3/morphe-patches/releases)。
+3. 之後的新版，Manager 會從這個來源抓。每一版改了什麼，在 Manager 的「檢視變更紀錄」或
+   [Releases](https://github.com/lchanc3/morphe-patches/releases) 都看得到。
 
 想自己編譯或寫新的 patch，請看 [CONTRIBUTING.md](CONTRIBUTING.md)。
 

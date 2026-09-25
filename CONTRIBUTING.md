@@ -126,7 +126,8 @@ R8 常把方法編到只剩剛好夠用的暫存器，同一個方法在 3.8.4 �
 到 GitHub 的 **Actions → Release → Run workflow**，填版本號。Workflow 會：
 
 1. 編譯 bundle，更新 `patches-bundle.json`、`patches-list.json` 和 README 的 patch 清單
-2. 把自上一版以來的 commit 整理成 Release 的更新說明（`.github/scripts/release_notes.py`）
+2. 把自上一版以來的 commit 整理成更新說明（`.github/scripts/release_notes.py`），寫進
+   Release，也加到 `CHANGELOG.md` 最前面
 3. 建立 Release，附上 `.mpp`
 
 **更新說明直接取自 commit 標題**，所以標題要寫給使用者看：
@@ -138,8 +139,11 @@ R8 常把方法編到只剩剛好夠用的暫存器，同一個方法在 3.8.4 �
 | `docs:`、`refactor:`、`perf:` 等 | 其他 |
 | `chore:`、`ci:`、`build:`、`test:`、`style:` | 不列出 |
 
-發完之後可以到 GitHub 上直接改 Release 的說明。repo 裡沒有 `CHANGELOG.md`：Morphe Manager
-只會讀 repo 裡的 `CHANGELOG.md`，所以 Manager 裡看不到更新說明，要看請到 Releases。
+`feat:` 和 `fix:` 在 `CHANGELOG.md` 裡會標上 app 名稱，Manager 靠這個在那個 app 上標示有更新。
+預設是 JPTT；支援別的 app 之後，在 commit 寫上範圍，例如 `fix(YouTube): ...`。
+
+`CHANGELOG.md` 是給 Morphe Manager 的「檢視變更紀錄」讀的（它不讀 Release），格式是 Manager
+規定的，**不要手改**。發完之後想補充說明，改 GitHub 上的 Release 就好。
 
 ## 反組譯資料
 
