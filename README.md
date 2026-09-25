@@ -91,7 +91,7 @@
   注意 clone 和官方版是兩個不同的 app，要各設各的。**Reconnect on return** 只是讓你切回來時
   立刻重連、不用等那個最長 8 秒的倒數，治不了根因。
 
-- **Patch settings 那個分頁在「設定」的最後一頁（叫 lchanc3）。** 上面的 patch 選項就是
+- **Patch settings 那個分頁在「設定」的最後一頁（叫 Morphe）。** 上面的 patch 選項就是
   Morphe Manager 打包時那幾個，差別是現在 Manager 那邊填的只是**預設值**，裝好之後在 app 裡
   還能改，不用重打包；欄位留空就回到預設值。圖片快取上限改完要重開 app 才生效（Fresco 的
   快取是啟動時設定的），其他即時生效。**匯出不含帳號密碼** —— 那些存在另一個檔案
