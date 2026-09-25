@@ -1,7 +1,9 @@
 name: Release
 
 # Run manually from the Actions tab: pick a version, get a release Morphe
-# Manager can consume as a patch source.
+# Manager can consume as a patch source. What changed goes in the release's
+# notes, written from the commits since the previous release; there is no
+# CHANGELOG.md.
 on:
   workflow_dispatch:
     inputs:
@@ -22,6 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # The whole history and its tags, so the release notes can list the
+          # commits since the previous release.
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -37,6 +43,10 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew buildAndroid generatePatchesList -Pversion="$VERSION" --no-daemon --console=plain
+
+      # Before the release commit below, so that commit is not in its own notes.
+      - name: Write the release notes
+        run: python3 .github/scripts/release_notes.py > "$RUNNER_TEMP/notes.md"
 
       # Morphe Manager reads these two files straight from the repo to show the
       # bundle and its patches before downloading anything.
@@ -72,4 +82,4 @@ jobs:
           gh release create "v${VERSION}" \
             "patches/build/libs/patches-${VERSION}.mpp" \
             --title "v${VERSION}" \
-            --notes "JPTT patches v${VERSION}. Add as a patch source in Morphe Manager."
+            --notes-file "$RUNNER_TEMP/notes.md"
