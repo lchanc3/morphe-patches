@@ -19,10 +19,10 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.7](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.7)**&nbsp;&nbsp;•&nbsp;&nbsp;11 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
+> **[v1.2.8](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.8)**&nbsp;&nbsp;•&nbsp;&nbsp;12 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
 
 <details open>
-<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
+<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 
 **Supported versions:**
 
@@ -41,6 +41,7 @@
 | **Preload article images** | Downloads an article's images as soon as you open it instead of when you scroll to each one. Respects the app's own image loading settings. | `preloadLimit`<br>`concurrency` |
 | **Reconnect on return** | Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds and does not even run while the app is in the background. |  |
 | **Remove ads** | Stops the banner, the rows inside articles and lists, and the ad the app falls back to when it thinks AdMob is blocked. No ad is requested at all, so nothing is downloaded and nothing is reported. |  |
+| **Search history actions** | Long press a recent search keyword in the article search dialog to delete it, clear the history, or add a home screen shortcut that opens the board with that search. Shortcuts made from the 最近搜尋 tab open the search too. |  |
 | **Wrap recent searches** | Lays the recent search keywords out over several lines instead of one line you have to scroll sideways. |  |
 
 📖 安裝前必讀、常見問題與功能說明：[JPTT 使用說明](docs/JPTT.md)
