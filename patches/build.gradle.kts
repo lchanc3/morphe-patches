@@ -30,7 +30,10 @@ tasks {
         description = "Apply the built bundle to a JPTT APK, so a patch that stopped " +
             "matching fails here instead of in Morphe Manager"
 
-        dependsOn(build)
+        // buildAndroid rather than build: it writes classes.dex into the jar in
+        // place, so a later build sees the jar changed and rebuilds it without
+        // one -- a bundle that works here and shows no patches on a phone.
+        dependsOn("buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.VerifyAgainstApkKt")
@@ -56,7 +59,7 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Regenerate patches-list.json from the built bundle"
 
-        dependsOn(build)
+        dependsOn("buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
