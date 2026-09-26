@@ -16,6 +16,7 @@ internal object Constants {
     const val EXTENSION_IMAGE_LINK_CLASS = "Lapp/lchanc3/extension/jptt/ImageLinkPatch;"
     const val EXTENSION_SETTINGS_TAB_CLASS = "Lapp/lchanc3/extension/jptt/SettingsTab;"
     const val EXTENSION_PATCH_SETTINGS_CLASS = "Lapp/lchanc3/extension/jptt/PatchSettings;"
+    const val EXTENSION_LOGIN_BAN_CLASS = "Lapp/lchanc3/extension/jptt/LoginBanPatch;"
 
     const val ARTICLE_FRAGMENT_CLASS = "Lcom/joshua/jptt/ArticleFragment;"
     const val ARTICLE_URL_TASK_CLASS = "Lcom/joshua/jptt/ArticleUrlAsyncTask;"
@@ -25,6 +26,7 @@ internal object Constants {
     const val SETTINGS_PAGER_ADAPTER_CLASS = "Lcom/joshua/jptt/SettingsPagerAdapter;"
     const val SPLASH_ACTIVITY_CLASS = "Lcom/joshua/jptt/SplashActivity;"
     const val UTIL_CLASS = "Lcom/joshua/jptt/Util;"
+    const val JSOCKET_CLASS = "Lcom/joshua/jptt/JSocket;"
     const val JSOCKET_SIMPLE_CLASS = "Lcom/joshua/jptt/JSocketSimple;"
 
     /** Type prefix shared by JSocket, JSocketSimple and their inner classes. */
