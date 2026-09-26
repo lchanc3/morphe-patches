@@ -1,6 +1,7 @@
 # 🧩 lchanc3's patches
 
-給 [Morphe](https://github.com/MorpheApp) 用的 patch，目前支援 JPTT（PTT 的 Android app）。
+給 [Morphe](https://github.com/MorpheApp) 用的 patch，目前支援 JPTT（PTT 的 Android app）和
+[Local Dream](https://github.com/xororz/local-dream)（手機上跑的 Stable Diffusion）。
 
 ## 📥 使用方式
 
@@ -10,7 +11,8 @@
    https://raw.githubusercontent.com/lchanc3/morphe-patches/main/patches-bundle.json
    ```
 
-2. 選擇 JPTT，照預設勾選打包安裝。安裝前請先看 [JPTT 使用說明](docs/JPTT.md)。
+2. 選擇要 patch 的 app，照預設勾選打包安裝。安裝前請先看那個 app 的使用說明：
+   [JPTT](docs/JPTT.md)、[Local Dream](docs/Local%20Dream.md)。
 3. 之後的新版，Manager 會從這個來源抓。每一版改了什麼，在 Manager 的「檢視變更紀錄」或
    [Releases](https://github.com/lchanc3/morphe-patches/releases) 都看得到。
 
