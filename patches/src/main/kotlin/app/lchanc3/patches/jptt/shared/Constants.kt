@@ -16,11 +16,13 @@ internal object Constants {
     const val EXTENSION_IMAGE_LINK_CLASS = "Lapp/lchanc3/extension/jptt/ImageLinkPatch;"
     const val EXTENSION_SETTINGS_TAB_CLASS = "Lapp/lchanc3/extension/jptt/SettingsTab;"
     const val EXTENSION_PATCH_SETTINGS_CLASS = "Lapp/lchanc3/extension/jptt/PatchSettings;"
+    const val EXTENSION_RECONNECT_CLASS = "Lapp/lchanc3/extension/jptt/ReconnectPatch;"
     const val EXTENSION_LOGIN_BAN_CLASS = "Lapp/lchanc3/extension/jptt/LoginBanPatch;"
 
     const val ARTICLE_FRAGMENT_CLASS = "Lcom/joshua/jptt/ArticleFragment;"
     const val ARTICLE_URL_TASK_CLASS = "Lcom/joshua/jptt/ArticleUrlAsyncTask;"
     const val BOARD_FRAGMENT_CLASS = "Lcom/joshua/jptt/BoardFragment;"
+    const val CONTENT_PAGER_ADAPTER_CLASS = "Lcom/joshua/jptt/ContentPagerAdapter;"
     const val DB_HELPER_CLASS = "Lcom/joshua/jptt/DBHelper;"
     const val MAIN_ACTIVITY_CLASS = "Lcom/joshua/jptt/MainActivity;"
     const val SETTINGS_PAGER_ADAPTER_CLASS = "Lcom/joshua/jptt/SettingsPagerAdapter;"
