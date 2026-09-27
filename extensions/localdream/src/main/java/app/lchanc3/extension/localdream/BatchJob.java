@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Log;
@@ -57,6 +58,12 @@ final class BatchJob {
     private static final String BACKEND = "http://localhost:8081";
     private static final int NATIVE_SCALE = 4;
     static final int[] SCALES = {2, 3, NATIVE_SCALE};
+    /**
+     * How long the wake lock is held for one step, renewed at every picture:
+     * longer than the backend is given for one, so it only runs out if the
+     * batch never lets go of it.
+     */
+    private static final long WAKE_LOCK_TIMEOUT_MS = 35 * 60_000;
 
     /** The upscale screen's own choice, which the batch starts from and writes back to. */
     private static final String PREFS = "upscaler_prefs";
@@ -111,6 +118,7 @@ final class BatchJob {
     private volatile boolean stopRequested;
     private volatile Thread worker;
     private volatile HttpURLConnection connection;
+    private PowerManager.WakeLock wakeLock;
 
     static synchronized BatchJob current() {
         return current;
@@ -253,6 +261,7 @@ final class BatchJob {
 
     private void work() {
         try {
+            keepAwake();
             if (!waitForBackend()) {
                 if (!stopRequested) problem = Strings.get(context).backendNotRunning;
                 return;
@@ -260,9 +269,11 @@ final class BatchJob {
             for (Item item : items) {
                 if (stopRequested) break;
                 if (item.state != QUEUED) continue;
+                keepAwake();
                 process(item);
             }
         } finally {
+            letSleep();
             for (Item item : items) {
                 if (item.state == QUEUED || item.state == RUNNING) item.state = CANCELLED;
             }
@@ -270,6 +281,32 @@ final class BatchJob {
             running = false;
             worker = null;
             changed();
+        }
+    }
+
+    /**
+     * Keeps the CPU running, for the backend as well as this thread, so the
+     * batch goes on with the screen off. Renews the timeout when already held.
+     */
+    private void keepAwake() {
+        try {
+            if (wakeLock == null) {
+                PowerManager power = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                wakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LocalDream:BatchUpscale");
+                wakeLock.setReferenceCounted(false);
+            }
+            wakeLock.acquire(WAKE_LOCK_TIMEOUT_MS);
+        } catch (Throwable ex) {
+            // Without the permission the batch still runs while the screen is on.
+            Log.w(BatchUpscalePatch.LOG_TAG, "Could not hold a wake lock", ex);
+        }
+    }
+
+    private void letSleep() {
+        try {
+            if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
+        } catch (Throwable ex) {
+            Log.w(BatchUpscalePatch.LOG_TAG, "Could not release the wake lock", ex);
         }
     }
 

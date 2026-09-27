@@ -33,12 +33,32 @@ private const val CONTEXT = "Landroid/content/Context;"
 private const val URI = "Landroid/net/Uri;"
 private const val GET_CONTENT = "android.intent.action.GET_CONTENT"
 private const val ALLOW_MULTIPLE = "android.intent.extra.ALLOW_MULTIPLE"
+private const val WAKE_LOCK = "android.permission.WAKE_LOCK"
 
-/** Declares the batch screen, which the patched picker opens. */
+/**
+ * Declares the batch screen, which the patched picker opens, and the wake lock
+ * that keeps a batch going with the screen off.
+ */
 private val batchUpscaleManifestPatch = resourcePatch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
+
+            // The app's backend runs in a foreground service, which keeps the
+            // process alive but not the CPU awake.
+            val permissions = document.getElementsByTagName("uses-permission")
+            val declared = (0 until permissions.length).any {
+                (permissions.item(it) as Element).getAttribute("android:name") == WAKE_LOCK
+            }
+            if (!declared) {
+                application.parentNode.insertBefore(
+                    document.createElement("uses-permission").apply {
+                        setAttribute("android:name", WAKE_LOCK)
+                    },
+                    application,
+                )
+            }
+
             application.appendChild(
                 document.createElement("activity").apply {
                     setAttribute("android:name", EXTENSION_BATCH_UPSCALE_ACTIVITY)
