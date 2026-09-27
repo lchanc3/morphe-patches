@@ -21,7 +21,7 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.3.0](https://github.com/lchanc3/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;15 patches&nbsp;&nbsp;•&nbsp;&nbsp;2 apps
+> **[v1.3.1](https://github.com/lchanc3/morphe-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;15 patches&nbsp;&nbsp;•&nbsp;&nbsp;2 apps
 
 <details open>
 <summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
