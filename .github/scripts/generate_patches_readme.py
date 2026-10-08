@@ -7,6 +7,7 @@ and PATCHES_END markers is replaced; the rest of the README is left alone.
 
 import json
 import pathlib
+import re
 import sys
 from urllib.parse import quote
 
@@ -36,13 +37,31 @@ def app_sections(patches):
     for patch in patches:
         for package in patch.get("compatiblePackages") or []:
             name = package.get("name") or package["packageName"]
-            apps.setdefault(name, {"package": package, "patches": []})
-            apps[name]["patches"].append(patch)
+            apps.setdefault(name, {"targets": [], "patches": []})
+            section = apps[name]
+            # Every version any of the app's patches supports. A new patch may
+            # only claim the latest release while the older ones keep theirs.
+            for target in package.get("targets") or []:
+                if target not in section["targets"]:
+                    section["targets"].append(target)
+            section["patches"].append((patch, package))
+    for section in apps.values():
+        section["targets"].sort(key=target_order)
     return dict(sorted(apps.items(), key=lambda item: item[0].lower()))
 
 
-def versions_table(package):
-    targets = package.get("targets") or []
+def target_order(target):
+    """Newest tested version first, the untested ones after them."""
+    version = target.get("version")
+    numbers = [int(part) for part in re.findall(r"\d+", version or "")]
+    return (version is None, [-number for number in numbers])
+
+
+def tested_versions(targets):
+    return [target["version"] for target in targets if target.get("version")]
+
+
+def versions_table(targets):
     labelled = [
         ("🧪&nbsp;" if target.get("isExperimental") else "") + (target.get("version") or "any")
         for target in targets
@@ -56,17 +75,22 @@ def versions_table(package):
     )
 
 
-def patches_table(patches):
+def patches_table(patches, targets):
     rows = [
         "| Patch | Description | Options |",
         "|---|---|---|",
     ]
-    for patch in patches:
+    all_versions = tested_versions(targets)
+    for patch, package in patches:
         options = "<br>".join(
             "`" + option["key"] + "`" for option in patch.get("options") or []
         )
+        description = escape(patch.get("description"))
+        versions = tested_versions(sorted(package.get("targets") or [], key=target_order))
+        if versions and set(versions) != set(all_versions):
+            description += "<br><sub>Only " + ", ".join(versions) + "</sub>"
         rows.append(
-            f"| **{escape(patch['name'])}** | {escape(patch.get('description'))} | {options} |"
+            f"| **{escape(patch['name'])}** | {description} | {options} |"
         )
     return "\n".join(rows) + "\n"
 
@@ -103,8 +127,8 @@ def render(data):
             "<details open>",
             f"<summary>📦 {name}&nbsp;&nbsp;•&nbsp;&nbsp;{len(section['patches'])} patches</summary>",
             "",
-            versions_table(section["package"]),
-            patches_table(section["patches"]),
+            versions_table(section["targets"]),
+            patches_table(section["patches"], section["targets"]),
             app_notes(name),
             "</details>",
             "",

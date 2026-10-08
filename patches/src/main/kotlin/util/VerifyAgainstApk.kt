@@ -2,6 +2,7 @@ package util
 
 import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.loadPatchesFromJar
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
@@ -28,18 +29,18 @@ import kotlin.system.exitProcess
 
 private const val JPTT_PACKAGE = "com.joshua.jptt"
 
-/** `base.apk` of JPTT 3.8.4, the version these patches were written against. */
+/** `base.apk` of JPTT 3.9.2, the release new patches are written against. */
 private const val KNOWN_APK_SHA256 =
-    "7b65298d00d8219d49b8d4dfac739f2bf63b6187a00f7697e3c67861fcf2d605"
+    "fbdd8f5411b80b576f8baa843f59dd836b663725c46f7ad036aa076a6b713c50"
 
 private val MISSING_APK = """
     No APK to verify against. Pass one with -Papk=<path>, point ${'$'}JPTT_APK at one,
     or leave one in the project root. It is deliberately not in the repository.
 
-    On a phone that still has JPTT 3.8.4 installed, its base.apk is byte for byte
-    the APK these patches were written against:
+    On a phone that has JPTT 3.9.2 installed, its base.apk is byte for byte the APK
+    new patches are written against:
 
-        adb pull "${'$'}(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.8.4.apk
+        adb pull "${'$'}(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.2.apk
 """.trimIndent()
 
 fun main(args: Array<String>) {
@@ -79,15 +80,28 @@ fun main(args: Array<String>) {
 
         val digest = apk.sha256()
         if (packageName == JPTT_PACKAGE && digest != KNOWN_APK_SHA256) {
-            println("note:   not the 3.8.4 APK these patches were written against ($digest)")
+            println("note:   not the 3.9.2 APK new patches are written against ($digest)")
         }
 
-        val patches = loadPatchesFromJar(setOf(bundle)).filter { patch ->
+        val forApp = loadPatchesFromJar(setOf(bundle)).filter { patch ->
             patch.compatibility?.any { it.packageName == packageName } ?: true
         }
-        if (patches.none { it.compatibility != null }) {
+        if (forApp.none { it.compatibility != null }) {
             println("No patch in the bundle is for $packageName.")
             exitProcess(1)
+        }
+
+        // New patches are only written against the latest release, so on an
+        // older one a patch that does not list it is left out, as Manager would.
+        // A version no patch lists is untested by all of them, so all are tried.
+        val version = patcher.context.packageMetadata.versionName
+        fun Patch<*>.versions() = compatibility.orEmpty()
+            .filter { it.packageName == packageName }
+            .flatMap { it.targets }
+            .mapNotNull { it.version }
+        val known = forApp.flatMap { it.versions() }.toSet()
+        val (patches, skipped) = forApp.partition { patch ->
+            patch.compatibility == null || version !in known || version in patch.versions()
         }
         patcher += patches.toSet()
 
@@ -104,6 +118,7 @@ fun main(args: Array<String>) {
                 }
             }
         }
+        skipped.forEach { println("  skip    ${it.name}: not for $version") }
 
         // Compiling the dex is part of the check: it is where the smali the
         // patches assembled has to survive being written back out.

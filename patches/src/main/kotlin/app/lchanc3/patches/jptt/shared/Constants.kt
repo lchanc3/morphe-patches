@@ -37,25 +37,46 @@ internal object Constants {
     /** Type prefix shared by JSocket, JSocketSimple and their inner classes. */
     const val JSOCKET_CLASS_PREFIX = "Lcom/joshua/jptt/JSocket"
 
-    val COMPATIBILITY_JPTT = Compatibility(
+    /** The JPTT release new patches are written and verified against. */
+    private val LATEST_TARGET = AppTarget(version = "3.9.2")
+
+    /**
+     * Says out loud that untested versions are worth trying, since nothing in
+     * JPTT is obfuscated and the fingerprints keep matching unless the code
+     * itself changes. Manager drops null versions when it collects both the
+     * supported and the experimental set, so this changes nothing there; it only
+     * shows up as the 🧪 column in the README.
+     */
+    private val UNTESTED_TARGET = AppTarget(version = null, isExperimental = true)
+
+    /**
+     * For the patches that were written before [LATEST_TARGET], which keep
+     * working on every release they were verified against.
+     *
+     * Morphe Manager builds its supported set from these version strings alone,
+     * so anything not listed lands in "incompatible" and has to be patched
+     * through the unsupported-version dialog. A new JPTT release is added here
+     * once these patches have been run against it with `verifyAgainstApk`, and
+     * the older ones stay. Newest first, as Morphe asks.
+     */
+    val COMPATIBILITY_JPTT = jptt(
+        LATEST_TARGET,
+        AppTarget(version = "3.8.5"),
+        AppTarget(version = "3.8.4"),
+        UNTESTED_TARGET,
+    )
+
+    /**
+     * For new patches: they are only written and verified against the latest
+     * JPTT release, so they claim nothing older.
+     */
+    val COMPATIBILITY_JPTT_LATEST = jptt(LATEST_TARGET, UNTESTED_TARGET)
+
+    private fun jptt(vararg targets: AppTarget) = Compatibility(
         name = "JPTT",
         packageName = "com.joshua.jptt",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFCFCFC,
-        targets = listOf(
-            // Versions the bundle has been run against with `verifyAgainstApk`.
-            // Morphe Manager builds its supported set from these version strings
-            // alone, so anything not listed lands in "incompatible" and has to be
-            // patched through the unsupported-version dialog. A new JPTT release
-            // belongs here once it has been verified.
-            AppTarget(version = "3.8.4"),
-            AppTarget(version = "3.8.5"),
-            // Says out loud that untested versions are worth trying, since nothing
-            // in JPTT is obfuscated and the fingerprints keep matching unless the
-            // code itself changes. Manager drops null versions when it collects
-            // both the supported and the experimental set, so this changes nothing
-            // there; it only shows up as the 🧪 column in the README.
-            AppTarget(version = null, isExperimental = true),
-        ),
+        targets = targets.toList(),
     )
 }

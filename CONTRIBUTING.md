@@ -37,7 +37,7 @@
 所以改完一定要跑：
 
 ```bash
-./gradlew verifyAgainstApk -Papk=JPTT_3.8.5.apk
+./gradlew verifyAgainstApk -Papk=JPTT_3.9.2.apk
 ```
 
 它會像 Manager 一樣把 bundle 套到 APK 上（不簽章、不安裝），每個 patch 印 ok 或 FAILED，
@@ -45,8 +45,7 @@
 完整的函式庫編譯的，但 app 裡那份被 R8 剃過，少了方法也編得過、套得上，要到執行時才當掉。
 最後把 patch 過的 dex 寫到 `patches/build/verify/`。
 
-沒給 `-Papk` 時，依序找環境變數 `JPTT_APK`、專案根目錄下檔名排序第一個 `.apk`。支援的
-每個版本都要各跑一次。
+沒給 `-Papk` 時，依序找環境變數 `JPTT_APK`、專案根目錄下檔名排序第一個 `.apk`。
 
 **它檢查不到的：** 暫存器用錯、欄位讀錯。這類錯誤要等 Android 載入那個 class 時才會被擋下來
 （`VerifyError`）。動到暫存器的 patch，請把 patch 後的 class 反組譯出來，確認每個值都從對的
@@ -57,12 +56,22 @@
   --single-class-output out patches/build/verify/classes*.dex
 ```
 
+### 支援哪些版本
+
+新功能只對最新版的 JPTT 開發，用 `COMPATIBILITY_JPTT_LATEST`。已經寫好的 patch 用
+`COMPATIBILITY_JPTT`，保留它們驗證過的每個舊版。兩者都定義在 `jptt/shared/Constants.kt`。
+
+- **改了 patch：** 對 `COMPATIBILITY_JPTT` 列的每個版本都跑一次。只支援最新版的 patch
+  在舊版上會印 `skip`，跟 Manager 一樣不套用。
+- **JPTT 出新版：** 先對新版跑過。全部 ok 的話，把 `LATEST_TARGET` 換成新版，舊的最新版
+  移進 `COMPATIBILITY_JPTT` 的清單，這樣舊 patch 在那一版還是可以用，新 patch 則跟著換到新版。
+
 ## 取得 APK
 
 APK 不進版控（`*.apk` 已被 ignore）。從裝了 JPTT 的手機撈：
 
 ```bash
-adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.8.5.apk
+adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.2.apk
 ```
 
 只需要 `base.apk`，其他 split 只有 native library、圖片資源和語系，patch 用不到。
