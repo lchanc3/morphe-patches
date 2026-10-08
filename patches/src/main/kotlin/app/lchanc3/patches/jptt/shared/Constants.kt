@@ -18,6 +18,7 @@ internal object Constants {
     const val EXTENSION_PATCH_SETTINGS_CLASS = "Lapp/lchanc3/extension/jptt/PatchSettings;"
     const val EXTENSION_RECONNECT_CLASS = "Lapp/lchanc3/extension/jptt/ReconnectPatch;"
     const val EXTENSION_LOGIN_BAN_CLASS = "Lapp/lchanc3/extension/jptt/LoginBanPatch;"
+    const val EXTENSION_BOT_BLOCK_CLASS = "Lapp/lchanc3/extension/jptt/BotBlockPatch;"
     const val EXTENSION_ANIMATED_IMAGE_CLASS = "Lapp/lchanc3/extension/jptt/AnimatedImagePatch;"
     const val EXTENSION_IMAGE_MEMORY_CACHE_CLASS = "Lapp/lchanc3/extension/jptt/ImageMemoryCachePatch;"
 

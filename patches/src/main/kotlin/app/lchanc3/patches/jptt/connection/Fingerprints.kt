@@ -92,3 +92,15 @@ internal object ProcessReadCharacterFingerprint : Fingerprint(
     parameters = listOf("C"),
     strings = listOf("登入太頻繁"),
 )
+
+/**
+ * `JSocket.showNetworkBrokenDialog()`, where every lost connection ends up: it
+ * tears the socket down and has MainActivity show 斷線了 and count down to the
+ * reconnect.
+ */
+internal object ShowNetworkBrokenDialogFingerprint : Fingerprint(
+    definingClass = JSOCKET_CLASS,
+    name = "showNetworkBrokenDialog",
+    returnType = "V",
+    parameters = emptyList(),
+)
