@@ -22,6 +22,13 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val KNOWN_REFUSAL = "登入太頻繁"
 
+/**
+ * What the app checks [KNOWN_REFUSAL] with: lineNContains up to 3.8.5, and from
+ * 3.9.2 on lineNContainsWithoutSyncCheck, since lineNContains started refusing
+ * every match while PTT is repainting the screen.
+ */
+private val REFUSAL_CHECKS = setOf("lineNContains", "lineNContainsWithoutSyncCheck")
+
 /** The part of PTT's "帳號 … 已被暫時禁止登入。" that names what happened. */
 private const val BANNED_TEXT = "禁止登入"
 
@@ -104,8 +111,8 @@ val stopOnLoginBanPatch = bytecodePatch(
         val stringRegister = method.getInstruction<OneRegisterInstruction>(constIndex).registerA
         val check = instructions[constIndex + 1]
         val checkReference = (check as? ReferenceInstruction)?.reference as? MethodReference
-        if (check.opcode != Opcode.INVOKE_VIRTUAL || checkReference?.name != "lineNContains") {
-            throw PatchException("\"$KNOWN_REFUSAL\" is no longer passed straight to lineNContains.")
+        if (check.opcode != Opcode.INVOKE_VIRTUAL || checkReference?.name !in REFUSAL_CHECKS) {
+            throw PatchException("\"$KNOWN_REFUSAL\" is no longer passed straight to one of $REFUSAL_CHECKS.")
         }
         // registerC of the call is the socket it is made on.
         val socketRegister = (check as FiveRegisterInstruction).registerC
