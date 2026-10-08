@@ -3,6 +3,7 @@
 
 # Potentially copyrighted APK
 *.apk
+*.apks
 
 .gradle/
 **/build/
