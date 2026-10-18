@@ -1,3 +1,19 @@
+# [1.4.0](https://github.com/lchanc3/morphe-patches/compare/v1.3.1...v1.4.0) (2026-10-18)
+
+### 新功能
+
+* **JPTT:** Support JPTT 3.9.2
+* **JPTT:** Add Stop on bot detection
+
+### 修正
+
+* **JPTT:** Make Stop on login ban work on JPTT 3.9.2
+
+### 其他
+
+* Point JPTT users at 3.9.2 for PTT's new interface
+
+
 # [1.3.1](https://github.com/lchanc3/morphe-patches/compare/v1.3.0...v1.3.1) (2026-09-27)
 
 ### 修正
