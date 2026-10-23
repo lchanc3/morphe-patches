@@ -1,6 +1,6 @@
 package app.lchanc3.patches.jptt.image
 
-import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT_LATEST
+import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_IMAGE_QUALITY_CLASS
 import app.lchanc3.patches.jptt.shared.extensionHookPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -19,7 +19,7 @@ val sharperImagesPatch = bytecodePatch(
         "are no longer decoded smaller than their frame. Uses more memory for large pictures.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_JPTT_LATEST)
+    compatibleWith(COMPATIBILITY_JPTT)
 
     dependsOn(extensionHookPatch)
 
