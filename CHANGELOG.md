@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/lchanc3/morphe-patches/compare/v1.4.0...v1.5.0) (2026-10-23)
+
+### 新功能
+
+* **JPTT:** Add Sharper images
+
+
 # [1.4.0](https://github.com/lchanc3/morphe-patches/compare/v1.3.1...v1.4.0) (2026-10-18)
 
 ### 新功能
