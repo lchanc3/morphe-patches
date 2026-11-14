@@ -40,7 +40,7 @@ internal object Constants {
     const val JSOCKET_CLASS_PREFIX = "Lcom/joshua/jptt/JSocket"
 
     /** The JPTT release every patch is written and verified against. */
-    private val LATEST_TARGET = AppTarget(version = "3.9.4")
+    private val LATEST_TARGET = AppTarget(version = "3.9.6")
 
     /**
      * Says out loud that untested versions are worth trying, since nothing in

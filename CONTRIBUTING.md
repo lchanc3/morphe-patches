@@ -37,7 +37,7 @@
 所以改完一定要跑：
 
 ```bash
-./gradlew verifyAgainstApk -Papk=JPTT_3.9.4.apk
+./gradlew verifyAgainstApk -Papk=JPTT_3.9.6.apk
 ```
 
 它會像 Manager 一樣把 bundle 套到 APK 上（不簽章、不安裝），每個 patch 印 ok 或 FAILED，
@@ -71,7 +71,7 @@
 APK 不進版控（`*.apk`、`*.apks`、`*.xapk` 都已被 ignore）。從裝了 JPTT 的手機撈：
 
 ```bash
-adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.4.apk
+adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.6.apk
 ```
 
 只需要 `base.apk`，其他 split 只有 native library、圖片資源和語系，patch 用不到。
