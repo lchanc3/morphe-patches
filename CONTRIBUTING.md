@@ -66,6 +66,10 @@
   某個 patch 套不上舊版時，給那個 patch 一個不含該版的 `Compatibility`。
   3.9.2 以前的版本不列，PTT 十月改版後那些版本本身就不能用。
 - **Local Dream：** 有混淆，每版都要重新驗證，版本寫在 `localdream/shared/Constants.kt`。
+- **DMM VR動画プレイヤー：** Unity IL2CPP，Hand tracking 是把 ARM64 機器碼寫進 `libil2cpp.so` 的固定位置，
+  版本寫在 `dmmvr/shared/Constants.kt`。新版的位址全部會變，要重新找 hook 點，改
+  `scripts/dmmvr-hand-tracking/patch_handtrack.py` 後重新產生 `NativeCode.kt`（需要 capstone）。
+  patch 會比對原檔的 SHA-256，版本不對只會套用失敗。
 
 ## 取得 APK
 
