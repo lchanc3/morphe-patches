@@ -58,12 +58,13 @@
 
 ### 支援哪些版本
 
-每個 app 都只支援最新版。舊版不會再有新功能和修正，列著只會讓使用者回頭去找舊的 patch release，
-所以 app 一出新版、patch 都驗證過，就直接換過去，舊版從清單拿掉。
+新功能和修正一律只對最新版寫。舊版能不能繼續列，看 app 而定：
 
-- **JPTT：** 版本寫在 `jptt/shared/Constants.kt` 的 `LATEST_TARGET`，所有 patch 共用
-  `COMPATIBILITY_JPTT`。出新版時先對新版跑 `verifyAgainstApk`，全部 ok 就把 `LATEST_TARGET`
-  換成新版。
+- **JPTT：** 盡力支援。版本寫在 `jptt/shared/Constants.kt` 的 `VERIFIED_TARGETS`（新的在前），
+  所有 patch 共用 `COMPATIBILITY_JPTT`。出新版時先對新版跑 `verifyAgainstApk`，全部 ok 就把新版
+  加到最前面，舊版留著，也要對舊版各跑一次。舊版只要還套得上就繼續列，但不會為了舊版另外修；
+  某個 patch 套不上舊版時，給那個 patch 一個不含該版的 `Compatibility`。
+  3.9.2 以前的版本不列，PTT 十月改版後那些版本本身就不能用。
 - **Local Dream：** 有混淆，每版都要重新驗證，版本寫在 `localdream/shared/Constants.kt`。
 
 ## 取得 APK
